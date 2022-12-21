@@ -1,9 +1,3 @@
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        let res = 2 + 2;
-        assert_eq!(res, 4);
-    }
-}
+pub mod bus;
+pub mod cpu;
+pub mod utils;
