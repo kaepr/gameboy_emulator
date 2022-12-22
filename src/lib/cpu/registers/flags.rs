@@ -1,6 +1,6 @@
 use std::fmt;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Debug)]
 pub struct Flags {
     zero: bool,
     sub: bool,
@@ -30,12 +30,25 @@ impl Flags {
         }
     }
 
-    fn reset_flag(&mut self, flagType: FlagType) {
-        todo!()
-    }
+    // fn reset_flag(&mut self, flagType: FlagType) {
+    //     !todo()
+    // }
 
     fn set_flag(&mut self, flagType: FlagType, value: bool) {
-        todo!()
+        match flagType {
+            FlagType::Zero => {
+                self.zero = value;
+            }
+            FlagType::Sub => {
+                self.sub = value;
+            }
+            FlagType::HalfCarry => {
+                self.half_carry = value;
+            }
+            FlagType::Carry => {
+                self.carry = value;
+            }
+        }
     }
 }
 
@@ -83,5 +96,44 @@ half_carry : {}
 carry      : {}"#,
             self.zero, self.sub, self.half_carry, self.carry
         )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{FlagType, Flags};
+
+    #[test]
+    fn test_from_trait_impl() {
+        let f = Flags {
+            zero: true,
+            sub: false,
+            half_carry: true,
+            carry: true,
+        };
+
+        let res: u8 = f.into();
+        let res_flag: Flags = res.into();
+
+        assert_eq!(res, 0b10110000);
+        assert_eq!(res_flag, f);
+    }
+
+    #[test]
+    fn test_set_flag() {
+        let mut f = Flags {
+            zero: true,
+            sub: false,
+            half_carry: true,
+            carry: true,
+        };
+
+        f.set_flag(FlagType::Zero, false);
+        f.set_flag(FlagType::Sub, true);
+        f.set_flag(FlagType::HalfCarry, false);
+        f.set_flag(FlagType::Carry, false);
+
+        let res: u8 = f.into();
+        assert_eq!(res, 0b01000000);
     }
 }

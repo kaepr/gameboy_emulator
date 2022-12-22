@@ -6,6 +6,7 @@ use self::flags::Flags;
 
 mod flags;
 
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Registers {
     a: u8,
     f: Flags,
