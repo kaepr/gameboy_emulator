@@ -1,6 +1,6 @@
 use std::fmt;
 
-use crate::utils::bytes_to_word;
+use crate::utils::{bytes_to_word, word_to_bytes};
 
 use self::flags::Flags;
 
@@ -20,12 +20,23 @@ pub struct Registers {
     sp: u16,
 }
 
-enum RegisterPair {
+pub enum Reg16 {
     AF,
     BC,
     DE,
     HL,
     SP,
+}
+
+pub enum Reg8 {
+    A,
+    F,
+    B,
+    C,
+    D,
+    E,
+    H,
+    L,
 }
 
 impl Registers {
@@ -39,18 +50,62 @@ impl Registers {
             e: 0x00,
             h: 0x00,
             l: 0x00,
-            pc: 0x0000, // TODO!: Change this later to correct value
+            pc: 0x0100,
             sp: 0x0000,
         }
     }
 
-    fn get_reg_pair(&self, pair: RegisterPair) -> u16 {
+    fn get_reg_pair(&self, pair: Reg16) -> u16 {
         match pair {
-            RegisterPair::AF => bytes_to_word(self.a, self.f.into()),
-            RegisterPair::BC => bytes_to_word(self.b, self.c),
-            RegisterPair::DE => bytes_to_word(self.d, self.e),
-            RegisterPair::HL => bytes_to_word(self.h, self.l),
-            RegisterPair::SP => self.sp,
+            Reg16::AF => bytes_to_word(self.a, self.f.into()),
+            Reg16::BC => bytes_to_word(self.b, self.c),
+            Reg16::DE => bytes_to_word(self.d, self.e),
+            Reg16::HL => bytes_to_word(self.h, self.l),
+            Reg16::SP => self.sp,
+        }
+    }
+
+    fn get_flags(&self) -> Flags {
+        self.f
+    }
+
+    fn set_reg(&mut self, value: u8, target: Reg8) {
+        match target {
+            Reg8::A => self.a = value,
+            Reg8::F => self.f = value.into(),
+            Reg8::B => self.b = value,
+            Reg8::C => self.c = value,
+            Reg8::D => self.d = value,
+            Reg8::E => self.e = value,
+            Reg8::H => self.h = value,
+            Reg8::L => self.l = value,
+        }
+    }
+
+    fn set_reg_pair(&mut self, value: u16, pair: Reg16) {
+        let (high, low) = word_to_bytes(value);
+
+        match pair {
+            // Used very rarely
+            Reg16::AF => {
+                self.a = high;    
+                self.f = low.into();
+            },
+            Reg16::BC => {
+                self.b = high;
+                self.c = low;
+            },
+            Reg16::DE => {
+                self.d = high;
+                self.e = low;
+            },
+            Reg16::HL => {
+                self.h = high;
+                self.l = low;
+            },
+            Reg16::SP => {
+               self.sp = value;
+            },
         }
     }
 }
@@ -71,3 +126,5 @@ H: 0x{:02x} L: 0x{:02x}"#,
         )
     }
 }
+
+

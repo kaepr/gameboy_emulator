@@ -30,12 +30,12 @@ impl Flags {
         }
     }
 
-    // fn reset_flag(&mut self, flagType: FlagType) {
+    // fn reset_flag(&mut self, flag_type: FlagType) {
     //     !todo()
     // }
 
-    fn set_flag(&mut self, flagType: FlagType, value: bool) {
-        match flagType {
+    fn set_flag(&mut self, flag_type: FlagType, value: bool) {
+        match flag_type {
             FlagType::Zero => {
                 self.zero = value;
             }
