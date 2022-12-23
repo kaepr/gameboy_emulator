@@ -88,24 +88,24 @@ impl Registers {
         match pair {
             // Used very rarely
             Reg16::AF => {
-                self.a = high;    
+                self.a = high;
                 self.f = low.into();
-            },
+            }
             Reg16::BC => {
                 self.b = high;
                 self.c = low;
-            },
+            }
             Reg16::DE => {
                 self.d = high;
                 self.e = low;
-            },
+            }
             Reg16::HL => {
                 self.h = high;
                 self.l = low;
-            },
+            }
             Reg16::SP => {
-               self.sp = value;
-            },
+                self.sp = value;
+            }
         }
     }
 }
@@ -126,5 +126,3 @@ H: 0x{:02x} L: 0x{:02x}"#,
         )
     }
 }
-
-

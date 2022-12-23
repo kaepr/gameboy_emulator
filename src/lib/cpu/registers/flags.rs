@@ -78,6 +78,7 @@ impl From<u8> for Flags {
 
         Flags {
             zero,
+
             sub,
             half_carry,
             carry,
