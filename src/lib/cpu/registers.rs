@@ -115,7 +115,6 @@ impl fmt::Display for Registers {
         write!(
             f,
             r#"
-Register Data
 PC: 0x{:04x} SP: 0x{:04x}
 A: 0x{:02x} 
 {}

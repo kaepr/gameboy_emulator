@@ -1,3 +1,5 @@
+use std::fmt;
+
 use crate::bus::Bus;
 
 use self::operations::Operation;
@@ -5,12 +7,6 @@ use self::operations::Operation;
 use super::CPU;
 
 mod operations;
-
-
-///
-/// Below link used as a reference for constructing enums
-/// https://rgbds.gbdev.io/docs/v0.6.0/gbz80.7/
-///
 
 pub struct Instruction {
     inst_name: String,
@@ -20,7 +16,17 @@ pub struct Instruction {
 }
 
 impl Instruction {
-    pub fn get_inst(op: Operation) -> String {
+    pub fn get_inst(op: Operation) -> Self {
         todo!()
+    }
+}
+
+impl fmt::Display for Instruction {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            r#"Inst: {}, n_cycles: {}, n_bytes: {}"#,
+            self.inst_name, self.n_cycles, self.n_bytes
+        )
     }
 }

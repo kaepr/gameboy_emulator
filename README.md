@@ -18,6 +18,7 @@
     - RETI
 - 8 Bit Load 
     - LD
+    - LDH
 - 16 Bit Load 
     - LD
     - POP
