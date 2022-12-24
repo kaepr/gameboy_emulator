@@ -1,3 +1,7 @@
+use crate::{alu16, alu8, bit, load16, load8, misc};
+
+use self::opcodes::*;
+
 ///
 /// Below link used as a reference for constructing enums
 /// https://gbdev.io/gb-opcodes/optables/
@@ -5,81 +9,10 @@
 
 const PREFIX_INST: u8 = 0xCB;
 
-pub enum MiscOp {
-    NOP,
-}
+mod opcode_macros;
+mod opcodes;
 
-// Load 8 =================
-pub enum Load8Dest {
-    BC,
-    B,
-    A,
-    C,
-}
-
-pub enum Load8Source {
-    A,
-    Direct8Bit,
-    BC,
-}
-
-pub enum Load8Op {
-    LD(Load8Dest, Load8Source),
-}
-
-// Load 16 =================
-pub enum Load16Dest {
-    BC,
-    Addr16Bit,
-}
-
-pub enum Load16Source {
-    Direct16Bit, // Immediate little endian 16-bit data
-    SP,
-}
-
-pub enum Load16Op {
-    LD(Load16Dest, Load16Source),
-}
-
-// ALU 16 ===================
-pub enum ALU16Dest {
-    BC,
-    HL,
-}
-
-pub enum ALU16Source {
-    NIL,
-    BC,
-}
-
-pub enum ALU16Op {
-    INC(ALU16Dest, ALU16Source),
-    ADD(ALU16Dest, ALU16Source),
-    DEC(ALU16Dest, ALU16Source),
-}
-
-// ALU 8 ======================
-pub enum ALU8Dest {
-    B,
-    C,
-}
-
-pub enum ALU8Source {
-    NIL,
-}
-
-pub enum ALU8Op {
-    INC(ALU8Dest, ALU8Source),
-    DEC(ALU8Dest, ALU8Source),
-}
-
-// BIT
-pub enum BitOp {
-    RLCA,
-    RRCA,
-}
-
+#[derive(PartialEq, Debug, Clone, Copy)]
 pub enum Operation {
     Misc(MiscOp),
     Load8(Load8Op),
@@ -93,45 +26,24 @@ impl Operation {
     pub fn get_operation(opcode: u8, prefixed: bool) -> Option<Operation> {
         let opcode = Self::construct_opcode(opcode, prefixed);
 
-        // Opcode [Destination] [Source]
+        // Opcode [Destination] [Src]
         match opcode {
-            0x0000 => Some(Operation::Misc(MiscOp::NOP)),
-            0x0001 => Some(Operation::Load16(Load16Op::LD(
-                Load16Dest::BC,
-                Load16Source::Direct16Bit,
-            ))),
-            0x0002 => Some(Operation::Load8(Load8Op::LD(Load8Dest::BC, Load8Source::A))),
-            0x0003 => Some(Operation::ALU16(ALU16Op::INC(
-                ALU16Dest::BC,
-                ALU16Source::NIL,
-            ))),
-            0x0004 => Some(Operation::ALU8(ALU8Op::INC(ALU8Dest::B, ALU8Source::NIL))),
-            0x0005 => Some(Operation::ALU8(ALU8Op::DEC(ALU8Dest::B, ALU8Source::NIL))),
-            0x0006 => Some(Operation::Load8(Load8Op::LD(
-                Load8Dest::B,
-                Load8Source::Direct8Bit,
-            ))),
-            0x0007 => Some(Operation::BIT(BitOp::RLCA)),
-            0x0008 => Some(Operation::Load16(Load16Op::LD(
-                Load16Dest::Addr16Bit,
-                Load16Source::SP,
-            ))),
-            0x0009 => Some(Operation::ALU16(ALU16Op::ADD(
-                ALU16Dest::HL,
-                ALU16Source::BC,
-            ))),
-            0x000A => Some(Operation::Load8(Load8Op::LD(Load8Dest::A, Load8Source::BC))),
-            0x000B => Some(Operation::ALU16(ALU16Op::DEC(
-                ALU16Dest::BC,
-                ALU16Source::NIL,
-            ))),
-            0x000C => Some(Operation::ALU8(ALU8Op::INC(ALU8Dest::C, ALU8Source::NIL))),
-            0x000D => Some(Operation::ALU8(ALU8Op::DEC(ALU8Dest::C, ALU8Source::NIL))),
-            0x000E => Some(Operation::Load8(Load8Op::LD(
-                Load8Dest::C,
-                Load8Source::Direct8Bit,
-            ))),
-            0x000F => Some(Operation::BIT(BitOp::RRCA)),
+            0x0000 => misc!(NOP),
+            0x0001 => load16!(LD, BC, Direct16Bit),
+            0x0002 => load8!(LD, BC, A),
+            0x0003 => alu16!(INC, BC, NIL),
+            0x0004 => alu8!(INC, B, NIL),
+            0x0005 => alu8!(DEC, B, NIL),
+            0x0006 => load8!(LD, B, Direct8Bit),
+            0x0007 => bit!(RLCA),
+            0x0008 => load16!(LD, Addr16Bit, SP),
+            0x0009 => alu16!(ADD, HL, BC),
+            0x000A => load8!(LD, A, BC),
+            0x000B => alu16!(DEC, BC, NIL),
+            0x000C => alu8!(INC, C, NIL),
+            0x000D => alu8!(DEC, C, NIL),
+            0x000E => load8!(LD, C, Direct8Bit),
+            0x000F => bit!(RRCA),
             _ => None,
         }
     }
@@ -151,7 +63,9 @@ impl Operation {
 
 #[cfg(test)]
 mod tests {
-    use super::Operation;
+    use crate::cpu::instruction::operations::opcodes::{Load16Dest, Load16Src};
+
+    use super::{opcodes::Load16Op, Operation};
 
     #[test]
     fn test_construct_opcode() {
@@ -168,5 +82,15 @@ mod tests {
 
         assert_eq!(res_1, 0x00cb);
         assert_eq!(res_2, 0xCBcb);
+    }
+
+    #[test]
+    fn test_macros() {
+        let op = Operation::get_operation(0x01, false).unwrap();
+
+        assert_eq!(
+            op,
+            Operation::Load16(Load16Op::LD(Load16Dest::BC, Load16Src::Direct16Bit))
+        );
     }
 }
