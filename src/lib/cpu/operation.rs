@@ -1,4 +1,3 @@
-
 use crate::{alu16, alu8, bit, jump, load16, load8, misc};
 
 use self::opcodes::*;
@@ -12,6 +11,7 @@ const PREFIX_INST: u8 = 0xCB;
 
 pub mod opcode_macros;
 pub mod opcodes;
+pub mod bit_handlers;
 
 #[derive(PartialEq, Debug, Clone, Copy)]
 pub enum Operation {
@@ -303,7 +303,6 @@ impl Operation {
             0x00FF => jump!(RST, X38),
 
             // Prefixed Codes
-
             0xCB00 => bit!(RLC, B),
             0xCB01 => bit!(RLC, C),
             0xCB02 => bit!(RLC, D),
@@ -378,7 +377,7 @@ impl Operation {
             0xCB43 => bit!(BIT, B0, E),
             0xCB44 => bit!(BIT, B0, H),
             0xCB45 => bit!(BIT, B0, L),
-            0xCB46 => bit!(BIT, B0, HL), 
+            0xCB46 => bit!(BIT, B0, HL),
             0xCB47 => bit!(BIT, B0, A),
             0xCB48 => bit!(BIT, B1, B),
             0xCB49 => bit!(BIT, B1, C),
@@ -440,7 +439,7 @@ impl Operation {
             0xCB7E => bit!(BIT, B7, HL),
             0xCB7F => bit!(BIT, B7, A),
 
-            0xCB80 => bit!(RES, B0, B), 
+            0xCB80 => bit!(RES, B0, B),
             0xCB81 => bit!(RES, B0, C),
             0xCB82 => bit!(RES, B0, D),
             0xCB83 => bit!(RES, B0, E),
@@ -595,9 +594,11 @@ impl Operation {
 
 #[cfg(test)]
 mod tests {
-    use super::{opcodes::{Load16Dest, Load16Src, Load16Op}, Operation};
+    use super::{
+        opcodes::{Load16Dest, Load16Op, Load16Src},
+        Operation,
+    };
 
-    
     #[test]
     fn test_construct_opcode() {
         let op = 0x12;

@@ -23,31 +23,28 @@ pub enum FlagType {
 impl Flags {
     pub fn new() -> Flags {
         Flags {
-            zero: false,
+            zero: true,
             sub: false,
-            half_carry: false,
-            carry: false,
+            half_carry: true,
+            carry: true,
         }
     }
 
-    // fn reset_flag(&mut self, flag_type: FlagType) {
-    //     !todo()
-    // }
-
-    fn set_flag(&mut self, flag_type: FlagType, value: bool) {
+    pub fn reset_flag(&mut self, flag_type: FlagType) {
         match flag_type {
-            FlagType::Zero => {
-                self.zero = value;
-            }
-            FlagType::Sub => {
-                self.sub = value;
-            }
-            FlagType::HalfCarry => {
-                self.half_carry = value;
-            }
-            FlagType::Carry => {
-                self.carry = value;
-            }
+            FlagType::Zero => self.zero = false,
+            FlagType::Sub => self.sub = false,
+            FlagType::HalfCarry => self.half_carry = false,
+            FlagType::Carry => self.carry = false,
+        }
+    }
+
+    pub fn set_flag(&mut self, flag_type: FlagType) {
+        match flag_type {
+            FlagType::Zero => self.zero = true,
+            FlagType::Sub => self.sub = true,
+            FlagType::HalfCarry => self.half_carry = true,
+            FlagType::Carry => self.carry = true,
         }
     }
 }
@@ -129,12 +126,12 @@ mod tests {
             carry: true,
         };
 
-        f.set_flag(FlagType::Zero, false);
-        f.set_flag(FlagType::Sub, true);
-        f.set_flag(FlagType::HalfCarry, false);
-        f.set_flag(FlagType::Carry, false);
+        f.reset_flag(FlagType::Zero);
+        f.set_flag(FlagType::Sub);
+        f.set_flag(FlagType::HalfCarry);
+        f.set_flag(FlagType::Carry);
 
         let res: u8 = f.into();
-        assert_eq!(res, 0b01000000);
+        assert_eq!(res, 0b01110000);
     }
 }

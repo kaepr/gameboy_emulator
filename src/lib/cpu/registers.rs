@@ -4,7 +4,7 @@ use crate::utils::{bytes_to_word, word_to_bytes};
 
 use self::flags::Flags;
 
-mod flags;
+pub mod flags;
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Registers {
