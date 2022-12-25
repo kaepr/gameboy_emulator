@@ -57,7 +57,13 @@ macro_rules! alu8 {
 #[macro_export]
 macro_rules! bit {
     ($op: ident) => {
-        Some(Operation::BIT(BitOp::$op))
+        Some(Operation::Bit(BitOp::$op))
+    };
+    ($op: ident, $dest: ident) => {
+        Some(Operation::Bit(BitOp::$op(BitDest::$dest)))
+    };
+    ($op: ident, $pos: ident, $dest: ident) => {
+        Some(Operation::Bit(BitOp::$op(BitPos::$pos, BitDest::$dest)))
     };
 }
 

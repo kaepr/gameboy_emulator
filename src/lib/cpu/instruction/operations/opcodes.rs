@@ -154,11 +154,46 @@ pub enum ALU8Op {
 
 // BIT
 #[derive(PartialEq, Debug, Clone, Copy)]
+pub enum BitDest {
+    B,
+    C,
+    D,
+    E,
+    H,
+    L,
+    HL,
+    A
+}
+
+#[derive(PartialEq, Debug, Clone, Copy)]
+pub enum BitPos {
+    B0,
+    B1,
+    B2,
+    B3,
+    B4,
+    B5,
+    B6,
+    B7
+}
+
+#[derive(PartialEq, Debug, Clone, Copy)]
 pub enum BitOp {
     RLCA,
     RRCA,
     RLA,
     RRA,
+    RLC(BitDest),
+    RRC(BitDest),
+    RL(BitDest),
+    RR(BitDest),
+    SLA(BitDest),
+    SRA(BitDest),
+    SWAP(BitDest),
+    SRL(BitDest),
+    BIT(BitPos, BitDest),
+    RES(BitPos, BitDest),
+    SET(BitPos, BitDest)
 }
 
 // JUMP
