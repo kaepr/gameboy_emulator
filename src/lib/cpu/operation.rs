@@ -1,3 +1,4 @@
+
 use crate::{alu16, alu8, bit, jump, load16, load8, misc};
 
 use self::opcodes::*;
@@ -9,8 +10,8 @@ use self::opcodes::*;
 
 const PREFIX_INST: u8 = 0xCB;
 
-mod opcode_macros;
-mod opcodes;
+pub mod opcode_macros;
+pub mod opcodes;
 
 #[derive(PartialEq, Debug, Clone, Copy)]
 pub enum Operation {
@@ -579,7 +580,7 @@ impl Operation {
         }
     }
 
-    fn is_prefix(opcode: u8) -> bool {
+    pub fn is_prefix(opcode: u8) -> bool {
         opcode == PREFIX_INST
     }
 
@@ -594,10 +595,9 @@ impl Operation {
 
 #[cfg(test)]
 mod tests {
-    use crate::cpu::instruction::operations::opcodes::{Load16Dest, Load16Src};
+    use super::{opcodes::{Load16Dest, Load16Src, Load16Op}, Operation};
 
-    use super::{opcodes::Load16Op, Operation};
-
+    
     #[test]
     fn test_construct_opcode() {
         let op = 0x12;

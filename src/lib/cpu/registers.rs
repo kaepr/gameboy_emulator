@@ -8,16 +8,16 @@ mod flags;
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Registers {
-    a: u8,
-    f: Flags,
-    b: u8,
-    c: u8,
-    d: u8,
-    e: u8,
-    h: u8,
-    l: u8,
-    pc: u16,
-    sp: u16,
+    pub a: u8,
+    pub f: Flags,
+    pub b: u8,
+    pub c: u8,
+    pub d: u8,
+    pub e: u8,
+    pub h: u8,
+    pub l: u8,
+    pub pc: u16,
+    pub sp: u16,
 }
 
 pub enum Reg16 {
@@ -55,7 +55,7 @@ impl Registers {
         }
     }
 
-    fn get_reg_pair(&self, pair: Reg16) -> u16 {
+    pub fn get_reg_pair(&self, pair: Reg16) -> u16 {
         match pair {
             Reg16::AF => bytes_to_word(self.a, self.f.into()),
             Reg16::BC => bytes_to_word(self.b, self.c),
@@ -65,11 +65,11 @@ impl Registers {
         }
     }
 
-    fn get_flags(&self) -> Flags {
+    pub fn get_flags(&self) -> Flags {
         self.f
     }
 
-    fn set_reg(&mut self, value: u8, target: Reg8) {
+    pub fn set_reg(&mut self, value: u8, target: Reg8) {
         match target {
             Reg8::A => self.a = value,
             Reg8::F => self.f = value.into(),
@@ -82,7 +82,7 @@ impl Registers {
         }
     }
 
-    fn set_reg_pair(&mut self, value: u16, pair: Reg16) {
+    pub fn set_reg_pair(&mut self, value: u16, pair: Reg16) {
         let (high, low) = word_to_bytes(value);
 
         match pair {

@@ -1,3 +1,6 @@
+use core::fmt;
+use std::fmt::Display;
+
 #[derive(PartialEq, Debug, Clone, Copy)]
 pub enum MiscOp {
     NOP,
@@ -162,7 +165,7 @@ pub enum BitDest {
     H,
     L,
     HL,
-    A
+    A,
 }
 
 #[derive(PartialEq, Debug, Clone, Copy)]
@@ -174,7 +177,31 @@ pub enum BitPos {
     B4,
     B5,
     B6,
-    B7
+    B7,
+}
+
+impl From<BitPos> for u8 {
+    fn from(pos: BitPos) -> u8 {
+        match pos {
+            BitPos::B0 => 0,
+            BitPos::B1 => 1,
+            BitPos::B2 => 2,
+            BitPos::B3 => 3,
+            BitPos::B4 => 4,
+            BitPos::B5 => 5,
+            BitPos::B6 => 6,
+            BitPos::B7 => 7,
+        }
+    }
+}
+
+impl Display for BitDest {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            BitDest::HL => write!(f, "(HL)"),
+            _ => write!(f, "{:?}", self)
+        }
+    }
 }
 
 #[derive(PartialEq, Debug, Clone, Copy)]
@@ -193,7 +220,7 @@ pub enum BitOp {
     SRL(BitDest),
     BIT(BitPos, BitDest),
     RES(BitPos, BitDest),
-    SET(BitPos, BitDest)
+    SET(BitPos, BitDest),
 }
 
 // JUMP
