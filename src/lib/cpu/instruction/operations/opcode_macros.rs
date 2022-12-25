@@ -7,6 +7,9 @@ macro_rules! misc {
 
 #[macro_export]
 macro_rules! load16 {
+    ($op: ident, $dest: ident) => {
+        Some(Operation::Load16(Load16Op::$op(Load16Dest::$dest)))
+    };
     ($op: ident, $dest: ident, $src: ident) => {
         Some(Operation::Load16(Load16Op::$op(
             Load16Dest::$dest,
@@ -27,6 +30,9 @@ macro_rules! load8 {
 
 #[macro_export]
 macro_rules! alu16 {
+    ($op: ident, $dest: ident) => {
+        Some(Operation::ALU16(ALU16Op::$op(ALU16Dest::$dest)))
+    };
     ($op: ident, $dest: ident, $src: ident) => {
         Some(Operation::ALU16(ALU16Op::$op(
             ALU16Dest::$dest,
@@ -37,6 +43,12 @@ macro_rules! alu16 {
 
 #[macro_export]
 macro_rules! alu8 {
+    ($op: ident) => {
+        Some(Operation::ALU8(ALU8Op::$op))
+    };
+    ($op: ident, $dest: ident) => {
+        Some(Operation::ALU8(ALU8Op::$op(ALU8Dest::$dest)))
+    };
     ($op: ident, $dest: ident, $src: ident) => {
         Some(Operation::ALU8(ALU8Op::$op(ALU8Dest::$dest, ALU8Src::$src)))
     };
@@ -46,5 +58,19 @@ macro_rules! alu8 {
 macro_rules! bit {
     ($op: ident) => {
         Some(Operation::BIT(BitOp::$op))
+    };
+}
+
+#[macro_export]
+macro_rules! jump {
+    ($op: ident) => {
+        Some(Operation::Jump(JumpOp::$op))
+    };
+    (RST, $flag: ident) => {
+        Some(Operation::Jump(JumpOp::RST(RSTTarget::$flag)))
+    };
+
+    ($op: ident, $flag: ident) => {
+        Some(Operation::Jump(JumpOp::$op(Flags::$flag)))
     };
 }
