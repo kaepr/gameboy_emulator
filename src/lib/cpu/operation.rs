@@ -12,6 +12,8 @@ const PREFIX_INST: u8 = 0xCB;
 pub mod opcode_macros;
 pub mod opcodes;
 pub mod bit_handlers;
+pub mod misc_handlers;
+pub mod jump_handlers;
 
 #[derive(PartialEq, Debug, Clone, Copy)]
 pub enum Operation {

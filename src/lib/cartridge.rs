@@ -12,6 +12,10 @@ impl Cartridge {
         Cartridge { data }
     }
 
+    pub fn stat(&self) {
+        println!("Cart Size: {}", self.data.len());
+    }
+
     pub fn cart_read(addr: u16) {}
 }
 

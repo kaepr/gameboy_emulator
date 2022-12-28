@@ -1,7 +1,10 @@
-use crate::{cpu::{
-    registers::{flags::FlagType, Reg16},
-    InstructionReturn, CPU,
-}, utils::is_bit_set};
+use crate::{
+    cpu::{
+        registers::{flags::FlagType, Reg16},
+        InstructionReturn, CPU,
+    },
+    utils::is_bit_set,
+};
 
 use super::opcodes::{BitDest, BitPos};
 
@@ -73,10 +76,10 @@ pub fn set(cpu: &mut CPU, pos: BitPos, dest: BitDest) -> InstructionReturn {
     }
 }
 
-pub fn bit(cpu: &mut CPU, pos: BitPos, dest: BitDest) -> InstructionReturn {
+pub fn bit(cpu: &mut CPU, pos: BitPos, src: BitDest) -> InstructionReturn {
     let bit_pos: u8 = pos.into();
 
-    let value = fetch_value!(cpu, dest);
+    let value = fetch_value!(cpu, src);
 
     cpu.registers.f.reset_flag(FlagType::Zero);
     cpu.registers.f.reset_flag(FlagType::Sub);
@@ -86,7 +89,7 @@ pub fn bit(cpu: &mut CPU, pos: BitPos, dest: BitDest) -> InstructionReturn {
         cpu.registers.f.set_flag(FlagType::Zero);
     }
 
-    let n_cycles = if let BitDest::HL = dest { 12 } else { 8 };
+    let n_cycles = if let BitDest::HL = src { 12 } else { 8 };
 
     InstructionReturn {
         n_cycles,
