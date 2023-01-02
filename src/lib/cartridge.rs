@@ -7,9 +7,11 @@ pub struct Cartridge {
 impl Cartridge {
     pub fn new(path: String) -> Self {
         let path = Path::new(&path);
-        let data = fs::read(path).unwrap();
 
-        Cartridge { data }
+        match fs::read(path) {
+            Ok(data) => Cartridge { data },
+            Err(e) => panic!("Error in reading ROM {:?}", e),
+        }
     }
 
     pub fn stat(&self) {
@@ -18,4 +20,3 @@ impl Cartridge {
 
     pub fn cart_read(addr: u16) {}
 }
-

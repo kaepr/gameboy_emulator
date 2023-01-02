@@ -4,8 +4,9 @@ use self::{
     operation::{
         bit_handlers::{bit, res, set},
         jump_handlers::jp,
-        misc_handlers::nop,
-        opcodes::{BitOp, JumpOp, MiscOp},
+        load16_handlers::{ld as ld16, pop, push},
+        misc_handlers::{di, nop},
+        opcodes::{BitOp, JumpOp, Load16Op, MiscOp},
         Operation,
     },
     registers::Registers,
@@ -19,11 +20,19 @@ pub struct CPU {
     pub registers: Registers,
     pub bus: Bus,
     pub cycles: u64,
+    pub ime: bool,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum ReturnType {
+    Jumped,
+    NotJumped,
 }
 
 pub struct InstructionReturn {
     pub n_cycles: u64,
     pub n_bytes: u16,
+    pub return_type: ReturnType,
 }
 
 impl CPU {
@@ -32,6 +41,7 @@ impl CPU {
             registers: Registers::new(),
             cycles: 0,
             bus: Bus::new(),
+            ime: false,
         }
     }
 
@@ -60,12 +70,18 @@ impl CPU {
         );
 
         let InstructionReturn {
-            n_bytes: bytes,
-            n_cycles: cycles,
+            n_bytes,
+            n_cycles,
+            return_type,
         } = self.execute_inst(inst);
 
-        self.registers.pc += bytes;
-        self.cycles += cycles;
+        match return_type {
+            ReturnType::Jumped => self.cycles += n_cycles,
+            ReturnType::NotJumped => {
+                self.registers.pc += n_bytes;
+                self.cycles += n_cycles;
+            }
+        };
     }
 
     fn execute_inst(&mut self, inst: Operation) -> InstructionReturn {
@@ -76,10 +92,14 @@ impl CPU {
                 MiscOp::HALT => todo!(),
                 MiscOp::PREFIX => todo!(),
                 MiscOp::EI => todo!(),
-                MiscOp::DI => todo!(),
+                MiscOp::DI => di(self),
             },
             Operation::Load8(_) => todo!(),
-            Operation::Load16(_) => todo!(),
+            Operation::Load16(o) => match o {
+                Load16Op::LD(dest, src) => ld16(self, dest, src),
+                Load16Op::POP(dest) => pop(self, dest),
+                Load16Op::PUSH(dest) => push(self, dest),
+            },
             Operation::ALU16(_) => todo!(),
             Operation::ALU8(_) => todo!(),
             Operation::Bit(o) => match o {
@@ -103,7 +123,7 @@ impl CPU {
                 JumpOp::RETI => todo!(),
                 JumpOp::JR(_) => todo!(),
                 JumpOp::JPToHL => todo!(),
-                JumpOp::JP(f) => jp(f),
+                JumpOp::JP(f) => jp(self, f),
                 JumpOp::RET(_) => todo!(),
                 JumpOp::CALL(_) => todo!(),
                 JumpOp::RST(_) => todo!(),

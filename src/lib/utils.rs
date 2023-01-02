@@ -13,9 +13,13 @@ pub fn is_bit_set(byte: u8, pos: u8) -> bool {
     (mask & byte) != 0
 }
 
+pub fn le_bytes_to_word(low: u8, high: u8) -> u16 {
+    u16::from_le_bytes([low, high])
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{bytes_to_word, word_to_bytes, is_bit_set};
+    use super::{bytes_to_word, is_bit_set, word_to_bytes};
 
     #[test]
     fn test_bytes_to_word() {

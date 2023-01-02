@@ -226,7 +226,7 @@ pub enum BitOp {
 // JUMP
 
 #[derive(PartialEq, Debug, Clone, Copy)]
-pub enum Flags {
+pub enum JumpCondition {
     NIL,
     Z,
     C,
@@ -249,10 +249,10 @@ pub enum RSTTarget {
 #[derive(PartialEq, Debug, Clone, Copy)]
 pub enum JumpOp {
     RETI,
-    JR(Flags),
+    JR(JumpCondition),
     JPToHL,
-    JP(Flags),
-    RET(Flags),
-    CALL(Flags),
+    JP(JumpCondition),
+    RET(JumpCondition),
+    CALL(JumpCondition),
     RST(RSTTarget),
 }

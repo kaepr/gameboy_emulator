@@ -72,11 +72,10 @@ macro_rules! jump {
     ($op: ident) => {
         Some(Operation::Jump(JumpOp::$op))
     };
-    (RST, $flag: ident) => {
-        Some(Operation::Jump(JumpOp::RST(RSTTarget::$flag)))
+    (RST, $rst_target: ident) => {
+        Some(Operation::Jump(JumpOp::RST(RSTTarget::$rst_target)))
     };
-
-    ($op: ident, $flag: ident) => {
-        Some(Operation::Jump(JumpOp::$op(Flags::$flag)))
+    ($op: ident, $jump_condition: ident) => {
+        Some(Operation::Jump(JumpOp::$op(JumpCondition::$jump_condition)))
     };
 }

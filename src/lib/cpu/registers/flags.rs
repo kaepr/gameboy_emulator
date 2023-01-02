@@ -2,10 +2,10 @@ use std::fmt;
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub struct Flags {
-    zero: bool,
-    sub: bool,
-    half_carry: bool,
-    carry: bool,
+    pub zero: bool,
+    pub sub: bool,
+    pub half_carry: bool,
+    pub carry: bool,
 }
 
 const ZERO_FLAG_BIT_POS: u8 = 7;

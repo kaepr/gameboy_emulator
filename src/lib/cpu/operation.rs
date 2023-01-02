@@ -14,6 +14,7 @@ pub mod opcodes;
 pub mod bit_handlers;
 pub mod misc_handlers;
 pub mod jump_handlers;
+pub mod load16_handlers;
 
 #[derive(PartialEq, Debug, Clone, Copy)]
 pub enum Operation {

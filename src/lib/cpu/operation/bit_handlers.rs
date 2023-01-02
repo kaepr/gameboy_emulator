@@ -1,7 +1,7 @@
 use crate::{
     cpu::{
         registers::{flags::FlagType, Reg16},
-        InstructionReturn, CPU,
+        InstructionReturn, ReturnType, CPU,
     },
     utils::is_bit_set,
 };
@@ -57,6 +57,7 @@ pub fn res(cpu: &mut CPU, pos: BitPos, dest: BitDest) -> InstructionReturn {
     InstructionReturn {
         n_cycles,
         n_bytes: 2,
+        return_type: ReturnType::NotJumped,
     }
 }
 
@@ -73,6 +74,7 @@ pub fn set(cpu: &mut CPU, pos: BitPos, dest: BitDest) -> InstructionReturn {
     InstructionReturn {
         n_cycles,
         n_bytes: 2,
+        return_type: ReturnType::NotJumped,
     }
 }
 
@@ -94,5 +96,6 @@ pub fn bit(cpu: &mut CPU, pos: BitPos, src: BitDest) -> InstructionReturn {
     InstructionReturn {
         n_cycles,
         n_bytes: 2,
+        return_type: ReturnType::NotJumped,
     }
 }
