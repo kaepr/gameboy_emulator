@@ -39,6 +39,13 @@ impl Flags {
         }
     }
 
+    pub fn reset_flags(&mut self) {
+        self.reset_flag(FlagType::Sub);
+        self.reset_flag(FlagType::Zero);
+        self.reset_flag(FlagType::Carry);
+        self.reset_flag(FlagType::HalfCarry);
+    }
+
     pub fn set_flag(&mut self, flag_type: FlagType) {
         match flag_type {
             FlagType::Zero => self.zero = true,
@@ -75,7 +82,6 @@ impl From<u8> for Flags {
 
         Flags {
             zero,
-
             sub,
             half_carry,
             carry,

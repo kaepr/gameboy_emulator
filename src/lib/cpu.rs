@@ -5,14 +5,14 @@ use self::{
         bit_handlers::{bit, res, set},
         jump_handlers::jp,
         load16_handlers::{ld as ld16, pop, push},
+        load8_handlers::{ld as ld8, ldh},
         misc_handlers::{di, nop},
-        opcodes::{BitOp, JumpOp, Load16Op, MiscOp},
+        opcodes::{BitOp, JumpOp, Load16Op, Load8Op, MiscOp},
         Operation,
     },
     registers::Registers,
 };
 
-mod instruction;
 mod operation;
 mod registers;
 
@@ -94,7 +94,10 @@ impl CPU {
                 MiscOp::EI => todo!(),
                 MiscOp::DI => di(self),
             },
-            Operation::Load8(_) => todo!(),
+            Operation::Load8(o) => match o {
+                Load8Op::LD(dest, src) => ld8(self, dest, src),
+                Load8Op::LDH(dest, src) => ldh(self, dest, src),
+            },
             Operation::Load16(o) => match o {
                 Load16Op::LD(dest, src) => ld16(self, dest, src),
                 Load16Op::POP(dest) => pop(self, dest),
@@ -132,5 +135,3 @@ impl CPU {
     }
 }
 
-// #[cfg(test)]
-// mod tests {}
