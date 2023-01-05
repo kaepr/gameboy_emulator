@@ -34,7 +34,7 @@ impl Bus {
         // Currently load the entire ROM
         // Will be changed later
         for addr in 0x0000..cart.data.len() - 1 {
-            self.write(addr as u16, cart.data[addr]);  
+            self.write(addr as u16, cart.data[addr]);
         }
     }
 }

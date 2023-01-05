@@ -199,7 +199,7 @@ impl Display for BitDest {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             BitDest::HL => write!(f, "(HL)"),
-            _ => write!(f, "{:?}", self)
+            _ => write!(f, "{:?}", self),
         }
     }
 }

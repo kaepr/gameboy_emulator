@@ -8,11 +8,11 @@ fn main() {
     let cart = Cartridge::new(rom_path.to_string());
 
     cart.stat();
-    
+
     let mut cpu = CPU::new();
-        
+
     cpu.bus.load_cart(&cart);
-    
+
     loop {
         if !(true) {
             break;
