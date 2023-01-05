@@ -65,7 +65,7 @@ impl CPU {
         };
 
         println!(
-            "PC: 0x{:04x} | Inst: {:?} 0x{:02x}",
+            "PC: {:#06X} | Inst: {:?} {:#06X}",
             self.registers.pc, inst, opcode
         );
 

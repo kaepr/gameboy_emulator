@@ -8,7 +8,7 @@ use crate::{
 
 use super::opcodes::{Load8Dest, Load8Src};
 
-macro_rules! reg_dest {
+macro_rules! _reg_dest {
     ($x: expr, $reg_type: ident) => {
         match $reg_type {
             Load8Dest::B => $x.b,
@@ -215,7 +215,6 @@ pub fn ldh(cpu: &mut CPU, dest: Load8Dest, _src: Load8Src) -> InstructionReturn 
     match dest {
         Load8Dest::Unsigned8 => {
             let operand = cpu.bus.read(cpu.registers.pc + 1);
-            println!("operand: {}", operand);
             let addr = 0xFF00 | (operand as u16);
             cpu.bus.write(addr, cpu.registers.a);
         }

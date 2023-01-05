@@ -1,13 +1,13 @@
 use crate::{cartridge::Cartridge, utils::bytes_to_word};
 
 pub struct Bus {
-    memory: [u8; 0xFFFF],
+    memory: [u8; 0x10000],
 }
 
 impl Bus {
     pub fn new() -> Self {
         Bus {
-            memory: [0; 0xFFFF],
+            memory: [0; 0x10000],
         }
     }
 
