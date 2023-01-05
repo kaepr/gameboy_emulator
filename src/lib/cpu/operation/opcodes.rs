@@ -12,7 +12,7 @@ pub enum MiscOp {
 }
 
 // Load 8 =================
-#[derive(PartialEq, Debug, Clone, Copy)]
+#[derive(Eq, PartialEq, Debug, Clone, Copy)]
 pub enum Load8Dest {
     AddrC,
     Unsigned8,
@@ -31,7 +31,7 @@ pub enum Load8Dest {
     HL,
 }
 
-#[derive(PartialEq, Debug, Clone, Copy)]
+#[derive(Eq, PartialEq, Debug, Clone, Copy)]
 pub enum Load8Src {
     Unsigned8,
     AddrC,
