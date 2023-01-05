@@ -190,7 +190,7 @@ pub fn ld(cpu: &mut CPU, dest: Load8Dest, src: Load8Src) -> InstructionReturn {
             common_reg_return(src)
         }
         Load8Dest::E => {
-            cpu.registers.d = reg_src!(cpu, src);
+            cpu.registers.e = reg_src!(cpu, src);
             common_reg_return(src)
         }
         Load8Dest::H => {
