@@ -108,6 +108,19 @@ impl Registers {
             }
         }
     }
+
+    pub fn get_reg(&self, reg: Reg8) -> u8 {
+        match reg {
+            Reg8::A => self.a,
+            Reg8::F => self.f.into(),
+            Reg8::B => self.b,
+            Reg8::C => self.c,
+            Reg8::D => self.d,
+            Reg8::E => self.e,
+            Reg8::H => self.h,
+            Reg8::L => self.l,
+        }
+    }
 }
 
 impl fmt::Display for Registers {

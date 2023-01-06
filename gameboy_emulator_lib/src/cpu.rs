@@ -10,7 +10,7 @@ use self::{
         opcodes::{BitOp, JumpOp, Load16Op, Load8Op, MiscOp},
         Operation,
     },
-    registers::Registers,
+    registers::{Reg8, Registers},
 };
 
 mod operation;
@@ -54,6 +54,10 @@ impl CPU {
         self.execute();
     }
 
+    fn add_cycles(&mut self, n_cycles: Cycles) {
+        self.cycles += n_cycles as u64;
+    }
+
     pub fn fetch_byte(&mut self) -> u8 {
         let byte = self.bus.read(self.registers.pc);
         self.registers.pc = self.registers.pc.wrapping_add(1);
@@ -61,16 +65,36 @@ impl CPU {
         byte
     }
 
-    fn add_cycles(&mut self, n_cycles: Cycles) {
-        self.cycles += n_cycles as u64;
+    pub fn read_byte_bus(&mut self, addr: u16) -> u8 {
+        let byte = self.bus.read(addr);
+        self.add_cycles(Cycles::N4);
+        byte
+    }
+
+    // pub fn fetch_reg(&mut self, reg: Reg8) -> u8 {
+    //     let byte = self.registers.get_reg(reg);
+    //     self.add_cycles(Cycles::N4);
+    //     byte
+    // }
+
+    // pub fn write_reg(&mut self, reg: Reg8, byte: u8) {
+    //     self.registers.set_reg(byte, reg);
+    //     self.add_cycles(Cycles::N4);
+    // }
+
+    pub fn write_byte(&mut self, addr: u16, byte: u8) {
+        self.bus.write(addr, byte);
+        self.add_cycles(Cycles::N4);
     }
 
     fn execute(&mut self) {
-        let mut opcode = self.bus.read(self.registers.pc);
+        print!("PC: {:#06X}", self.registers.pc,);
+
+        let mut opcode = self.fetch_byte();
         let prefixed = Operation::is_prefix(opcode);
 
         if prefixed {
-            opcode = self.bus.read(self.registers.pc + 1);
+            opcode = self.fetch_byte();
         }
 
         let op = Operation::get_operation(opcode, prefixed);
@@ -80,24 +104,9 @@ impl CPU {
             None => panic!("Unknown opcode {}, prefixed {}", opcode, prefixed),
         };
 
-        println!(
-            "PC: {:#06X} | Inst: {:?} {:#06X}",
-            self.registers.pc, inst, opcode
-        );
+        println!(" => Inst: {:?} {:#06X}", inst, opcode);
 
-        let InstructionReturn {
-            n_bytes,
-            n_cycles,
-            return_type,
-        } = self.execute_inst(inst);
-
-        match return_type {
-            ReturnType::Jumped => self.cycles += n_cycles,
-            ReturnType::NotJumped => {
-                self.registers.pc += n_bytes;
-                self.cycles += n_cycles;
-            }
-        };
+        self.execute_inst(inst);
     }
 
     fn execute_inst(&mut self, inst: Operation) -> InstructionReturn {
