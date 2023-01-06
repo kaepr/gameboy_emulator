@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 gameboy_emulator_lib = { path = "../gameboy_emulator_lib" }
+sdl2 = {workspace = true}

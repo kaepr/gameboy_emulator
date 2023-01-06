@@ -24,6 +24,11 @@ pub struct CPU {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
+pub enum Cycles {
+    N4 = 4,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum ReturnType {
     Jumped,
     NotJumped,
@@ -52,12 +57,12 @@ impl CPU {
     pub fn fetch_byte(&mut self) -> u8 {
         let byte = self.bus.read(self.registers.pc);
         self.registers.pc = self.registers.pc.wrapping_add(1);
-        self.add_cycles(4);
+        self.add_cycles(Cycles::N4);
         byte
     }
 
-    fn add_cycles(&mut self, n_cycles: u64) {
-        self.cycles += n_cycles;
+    fn add_cycles(&mut self, n_cycles: Cycles) {
+        self.cycles += n_cycles as u64;
     }
 
     fn execute(&mut self) {

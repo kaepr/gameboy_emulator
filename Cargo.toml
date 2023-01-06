@@ -5,3 +5,6 @@ members = [
   "gameboy_emulator_lib"
 ]
 
+
+[workspace.dependencies]
+sdl2 = "0.35"
