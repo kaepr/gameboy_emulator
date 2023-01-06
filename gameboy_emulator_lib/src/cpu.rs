@@ -1,4 +1,4 @@
-use crate::bus::Bus;
+use crate::{bus::Bus, utils::word_to_bytes};
 
 use self::{
     operation::{
@@ -71,20 +71,15 @@ impl CPU {
         byte
     }
 
-    // pub fn fetch_reg(&mut self, reg: Reg8) -> u8 {
-    //     let byte = self.registers.get_reg(reg);
-    //     self.add_cycles(Cycles::N4);
-    //     byte
-    // }
-
-    // pub fn write_reg(&mut self, reg: Reg8, byte: u8) {
-    //     self.registers.set_reg(byte, reg);
-    //     self.add_cycles(Cycles::N4);
-    // }
-
     pub fn write_byte(&mut self, addr: u16, byte: u8) {
         self.bus.write(addr, byte);
         self.add_cycles(Cycles::N4);
+    }
+
+    pub fn write_word(&mut self, addr: u16, word: u16) {
+        let (hi, lo) = word_to_bytes(word);
+        self.write_byte(addr, lo);
+        self.write_byte(addr + 1, hi);
     }
 
     fn execute(&mut self) {
@@ -109,7 +104,7 @@ impl CPU {
         self.execute_inst(inst);
     }
 
-    fn execute_inst(&mut self, inst: Operation) -> InstructionReturn {
+    fn execute_inst(&mut self, inst: Operation) {
         match inst {
             Operation::Misc(o) => match o {
                 MiscOp::NOP => nop(self),

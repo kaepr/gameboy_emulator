@@ -2,26 +2,24 @@ use core::panic;
 
 use crate::{
     cpu::{
-        registers::{flags::FlagType, Reg16},
-        InstructionReturn, ReturnType, CPU,
+        registers::{flags::FlagType, Reg16}, CPU,
     },
     utils::le_bytes_to_word,
 };
 
 use super::opcodes::{Load16Dest, Load16Src};
 
-pub fn ld(cpu: &mut CPU, dest: Load16Dest, src: Load16Src) -> InstructionReturn {
-    let (res, n_cycles, n_bytes) = match src {
+pub fn ld(cpu: &mut CPU, dest: Load16Dest, src: Load16Src) {
+    let res = match src {
         Load16Src::Direct16Bit => {
-            let lo = cpu.bus.read(cpu.registers.pc + 1);
-            let hi = cpu.bus.read(cpu.registers.pc + 2);
-
-            (le_bytes_to_word(lo, hi), 12, 3)
+            let lo = cpu.fetch_byte();
+            let hi = cpu.fetch_byte();
+            le_bytes_to_word(lo, hi)
         }
-        Load16Src::SP => (cpu.registers.sp, 20, 3),
-        Load16Src::HL => (cpu.registers.get_reg_pair(Reg16::HL), 8, 1),
+        Load16Src::SP => cpu.registers.sp,
+        Load16Src::HL => cpu.registers.get_reg_pair(Reg16::HL),
         Load16Src::SPr8 => {
-            let operand = cpu.bus.read(cpu.registers.pc + 1);
+            let operand = cpu.fetch_byte();
             let r8 = operand as i8;
             let sp = cpu.registers.sp;
             let res = sp.wrapping_add(r8 as u16);
@@ -46,7 +44,7 @@ pub fn ld(cpu: &mut CPU, dest: Load16Dest, src: Load16Src) -> InstructionReturn 
                 }
             }
 
-            (res, 12, 2)
+            res
         }
     };
 
@@ -55,10 +53,10 @@ pub fn ld(cpu: &mut CPU, dest: Load16Dest, src: Load16Src) -> InstructionReturn 
             cpu.registers.set_reg_pair(res, Reg16::BC);
         }
         Load16Dest::Addr16Bit => {
-            let lo = cpu.bus.read(cpu.registers.pc + 1);
-            let hi = cpu.bus.read(cpu.registers.pc + 2);
+            let lo = cpu.fetch_byte();
+            let hi = cpu.fetch_byte();
             let addr = le_bytes_to_word(lo, hi);
-            cpu.bus.write16(addr, res);
+            cpu.write_word(addr, res);
         }
         Load16Dest::DE => {
             cpu.registers.set_reg_pair(res, Reg16::DE);
@@ -68,21 +66,16 @@ pub fn ld(cpu: &mut CPU, dest: Load16Dest, src: Load16Src) -> InstructionReturn 
         }
         Load16Dest::SP => {
             cpu.registers.set_reg_pair(res, Reg16::SP);
+            cpu.add_cycles(crate::cpu::Cycles::N4);
         }
         _ => panic!("Invalid choice of enum variant"),
     };
-
-    InstructionReturn {
-        n_cycles,
-        n_bytes,
-        return_type: ReturnType::NotJumped,
-    }
 }
 
-pub fn pop(cpu: &mut CPU, dest: Load16Dest) -> InstructionReturn {
+pub fn pop(cpu: &mut CPU, dest: Load16Dest) {
     todo!()
 }
 
-pub fn push(cpu: &mut CPU, dest: Load16Dest) -> InstructionReturn {
+pub fn push(cpu: &mut CPU, dest: Load16Dest) {
     todo!()
 }

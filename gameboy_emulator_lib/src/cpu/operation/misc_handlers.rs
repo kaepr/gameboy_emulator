@@ -1,19 +1,7 @@
-use crate::cpu::{InstructionReturn, ReturnType::NotJumped, CPU};
+use crate::cpu::CPU;
 
-pub fn nop(cpu: &mut CPU) -> InstructionReturn {
-    InstructionReturn {
-        n_cycles: 4,
-        n_bytes: 1,
-        return_type: NotJumped,
-    }
-}
+pub fn nop(cpu: &mut CPU) {}
 
-pub fn di(cpu: &mut CPU) -> InstructionReturn {
+pub fn di(cpu: &mut CPU) {
     cpu.ime = false; // TODO!: prohibit maskable interuppts
-
-    InstructionReturn {
-        n_cycles: 4,
-        n_bytes: 1,
-        return_type: NotJumped,
-    }
 }
