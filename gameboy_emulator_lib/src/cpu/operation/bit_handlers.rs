@@ -1,7 +1,6 @@
 use crate::{
     cpu::{
-        registers::{flags::FlagType, Reg16},
-        InstructionReturn, ReturnType, CPU,
+        registers::{flags::FlagType, Reg16}, CPU,
     },
     utils::is_bit_set,
 };
@@ -19,7 +18,7 @@ macro_rules! fetch_value {
             BitDest::L => $cpu.registers.l,
             BitDest::HL => {
                 let addr = $cpu.registers.get_reg_pair(Reg16::HL);
-                $cpu.bus.read(addr)
+                $cpu.read_byte_bus(addr)
             }
             BitDest::A => $cpu.registers.a,
         }
@@ -37,48 +36,32 @@ macro_rules! set_value {
             BitDest::L => $cpu.registers.l = $value,
             BitDest::HL => {
                 let addr = $cpu.registers.get_reg_pair(Reg16::HL);
-                $cpu.bus.write(addr, $value);
+                $cpu.write_byte(addr, $value);
             }
             BitDest::A => $cpu.registers.a = $value,
         }
     };
 }
 
-pub fn res(cpu: &mut CPU, pos: BitPos, dest: BitDest) -> InstructionReturn {
+pub fn res(cpu: &mut CPU, pos: BitPos, dest: BitDest) {
     let bit_pos: u8 = pos.into();
 
     let value = fetch_value!(cpu, dest);
     let value = value & !(1 << bit_pos);
 
     set_value!(cpu, dest, value);
-
-    let n_cycles = if let BitDest::HL = dest { 16 } else { 8 };
-
-    InstructionReturn {
-        n_cycles,
-        n_bytes: 2,
-        return_type: ReturnType::NotJumped,
-    }
 }
 
-pub fn set(cpu: &mut CPU, pos: BitPos, dest: BitDest) -> InstructionReturn {
+pub fn set(cpu: &mut CPU, pos: BitPos, dest: BitDest) {
     let bit_pos: u8 = pos.into();
 
     let value = fetch_value!(cpu, dest);
     let value = value | (1 << bit_pos);
 
     set_value!(cpu, dest, value);
-
-    let n_cycles = if let BitDest::HL = dest { 16 } else { 8 };
-
-    InstructionReturn {
-        n_cycles,
-        n_bytes: 2,
-        return_type: ReturnType::NotJumped,
-    }
 }
 
-pub fn bit(cpu: &mut CPU, pos: BitPos, src: BitDest) -> InstructionReturn {
+pub fn bit(cpu: &mut CPU, pos: BitPos, src: BitDest) {
     let bit_pos: u8 = pos.into();
 
     let value = fetch_value!(cpu, src);
@@ -89,13 +72,5 @@ pub fn bit(cpu: &mut CPU, pos: BitPos, src: BitDest) -> InstructionReturn {
 
     if !is_bit_set(value, bit_pos) {
         cpu.registers.f.set_flag(FlagType::Zero);
-    }
-
-    let n_cycles = if let BitDest::HL = src { 12 } else { 8 };
-
-    InstructionReturn {
-        n_cycles,
-        n_bytes: 2,
-        return_type: ReturnType::NotJumped,
     }
 }
