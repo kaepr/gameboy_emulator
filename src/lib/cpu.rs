@@ -3,7 +3,7 @@ use crate::bus::Bus;
 use self::{
     operation::{
         bit_handlers::{bit, res, set},
-        jump_handlers::jp,
+        jump_handlers::{call, jp},
         load16_handlers::{ld as ld16, pop, push},
         load8_handlers::{ld as ld8, ldh},
         misc_handlers::{di, nop},
@@ -47,6 +47,17 @@ impl CPU {
 
     pub fn step(&mut self) {
         self.execute();
+    }
+
+    pub fn fetch_byte(&mut self) -> u8 {
+        let byte = self.bus.read(self.registers.pc);
+        self.registers.pc = self.registers.pc.wrapping_add(1);
+        self.add_cycles(4);
+        byte
+    }
+
+    fn add_cycles(&mut self, n_cycles: u64) {
+        self.cycles += n_cycles;
     }
 
     fn execute(&mut self) {
@@ -128,7 +139,7 @@ impl CPU {
                 JumpOp::JPToHL => todo!(),
                 JumpOp::JP(f) => jp(self, f),
                 JumpOp::RET(_) => todo!(),
-                JumpOp::CALL(_) => todo!(),
+                JumpOp::CALL(f) => call(self, f),
                 JumpOp::RST(_) => todo!(),
             },
         }
