@@ -1,19 +1,27 @@
-[package]
-name = "gameboy_emulator"
-version = "0.1.0"
-edition = "2021"
+[workspace]
+
+members = [
+  "gameboy_emulator",
+  "gameboy_emulator_lib"
+]
+
+
+# [package]
+# name = "gameboy_emulator"
+# version = "0.1.0"
+# edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[[bin]]
-name = "gameboy_emulator"
-path = "src/bin.rs"
+# [[bin]]
+# name = "gameboy_emulator"
+# path = "src/bin.rs"
 
-[lib]
-name = "gameboy_emulator_lib"
-path = "src/lib/lib.rs"
-
-[dependencies]
-sdl2 = "0.35"
+# [lib]
+# name = "gameboy_emulator_lib"
+# path = "src/lib/lib.rs"
+#
+# [dependencies]
+# sdl2 = "0.35"
 
 
