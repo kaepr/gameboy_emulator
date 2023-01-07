@@ -3,7 +3,7 @@ use gameboy_emulator_lib::{cartridge::Cartridge, cpu::CPU};
 fn main() {
     println!("Gameboy Emulator !");
 
-    let rom_path = "../../projects/test_roms/cpu_instrs.gb";
+    let rom_path = "../../projects/test_roms/07-jr,jp,call,ret,rst.gb";
 
     let cart = Cartridge::new(rom_path.to_string());
 

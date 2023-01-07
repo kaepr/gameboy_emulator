@@ -13,6 +13,8 @@ pub mod bit_handlers;
 pub mod jump_handlers;
 pub mod load16_handlers;
 pub mod load8_handlers;
+pub mod alu8_handlers;
+pub mod alu16_handlers;
 pub mod misc_handlers;
 pub mod opcode_macros;
 pub mod opcodes;

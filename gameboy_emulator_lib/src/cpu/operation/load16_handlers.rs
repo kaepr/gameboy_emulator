@@ -2,9 +2,10 @@ use core::panic;
 
 use crate::{
     cpu::{
-        registers::{flags::FlagType, Reg16}, CPU,
+        registers::{flags::FlagType, Reg16},
+        Cycles, CPU,
     },
-    utils::le_bytes_to_word,
+    utils::{le_bytes_to_word, word_to_bytes},
 };
 
 use super::opcodes::{Load16Dest, Load16Src};
@@ -66,16 +67,43 @@ pub fn ld(cpu: &mut CPU, dest: Load16Dest, src: Load16Src) {
         }
         Load16Dest::SP => {
             cpu.registers.set_reg_pair(res, Reg16::SP);
-            cpu.add_cycles(crate::cpu::Cycles::N4);
+            cpu.add_cycles(Cycles::N4);
         }
         _ => panic!("Invalid choice of enum variant"),
     };
 }
 
 pub fn pop(cpu: &mut CPU, dest: Load16Dest) {
-    todo!()
+    let lo = cpu.read_byte_bus(cpu.registers.sp);
+    cpu.registers.sp = cpu.registers.sp.wrapping_add(1);
+    let hi = cpu.read_byte_bus(cpu.registers.sp);
+    cpu.registers.sp = cpu.registers.sp.wrapping_add(1);
+
+    let word = le_bytes_to_word(lo, hi);
+
+    match dest {
+        Load16Dest::BC => cpu.registers.set_reg_pair(word, Reg16::BC),
+        Load16Dest::DE => cpu.registers.set_reg_pair(word, Reg16::DE),
+        Load16Dest::HL => cpu.registers.set_reg_pair(word, Reg16::HL),
+        Load16Dest::AF => cpu.registers.set_reg_pair(word, Reg16::AF),
+        _ => panic!("invalid choice"),
+    };
 }
 
 pub fn push(cpu: &mut CPU, dest: Load16Dest) {
-    todo!()
+    let word = match dest {
+        Load16Dest::BC => cpu.registers.get_reg_pair(Reg16::BC),
+        Load16Dest::DE => cpu.registers.get_reg_pair(Reg16::DE),
+        Load16Dest::HL => cpu.registers.get_reg_pair(Reg16::HL),
+        Load16Dest::AF => cpu.registers.get_reg_pair(Reg16::AF),
+        _ => panic!("invalid choice"),
+    };
+
+    let (hi, lo) = word_to_bytes(word);
+
+    cpu.add_cycles(Cycles::N4);
+    cpu.registers.sp = cpu.registers.sp.wrapping_sub(1);
+    cpu.write_byte(cpu.registers.sp, hi);
+    cpu.registers.sp = cpu.registers.sp.wrapping_sub(1);
+    cpu.write_byte(cpu.registers.sp, lo);
 }

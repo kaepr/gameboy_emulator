@@ -3,5 +3,5 @@ use crate::cpu::CPU;
 pub fn nop(cpu: &mut CPU) {}
 
 pub fn di(cpu: &mut CPU) {
-    cpu.ime = false; // TODO!: prohibit maskable interuppts
+    cpu.ime = false; 
 }

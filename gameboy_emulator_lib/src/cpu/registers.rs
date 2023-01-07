@@ -86,7 +86,6 @@ impl Registers {
         let (high, low) = word_to_bytes(value);
 
         match pair {
-            // Used very rarely
             Reg16::AF => {
                 self.a = high;
                 self.f = low.into();

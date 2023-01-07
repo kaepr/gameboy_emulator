@@ -17,9 +17,19 @@ pub fn le_bytes_to_word(low: u8, high: u8) -> u16 {
     u16::from_le_bytes([low, high])
 }
 
+pub fn is_half_carry_inc8(a: u8, b: u8) -> bool {
+    (((a & 0x0F) + (b & 0x0F)) & 0x10) == 0x10
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{bytes_to_word, is_bit_set, word_to_bytes};
+    use super::{bytes_to_word, is_bit_set, is_half_carry_inc8, word_to_bytes};
+
+    #[test]
+    fn test_half_carry() {
+        assert_eq!(true, is_half_carry_inc8(10, 12));
+        assert_eq!(false, is_half_carry_inc8(5, 4));
+    }
 
     #[test]
     fn test_bytes_to_word() {
