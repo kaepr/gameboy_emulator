@@ -78,6 +78,15 @@ impl CPU {
     }
 
     fn execute(&mut self) {
+        println!(
+            "{} ({:02X} {:02X} {:02X} {:02X})",
+            self.registers,
+            self.bus.read(self.registers.pc),
+            self.bus.read(self.registers.pc + 1),
+            self.bus.read(self.registers.pc + 2),
+            self.bus.read(self.registers.pc + 3),
+        );
+
         let mut opcode = self.fetch_byte();
         let prefixed = Operation::is_prefix(opcode);
 
@@ -95,11 +104,10 @@ impl CPU {
         // println!(" => Inst: {:?} {:#06X}", inst, opcode);
 
         let b = self.bus.read(0xFF02);
-        // println!("Debug Info: {:#04X}", b);
         if b == 0x81 {
             let c = self.bus.read(0xFF01);
             self.debug_info.push(c as char);
-            println!("string: {}", self.debug_info);
+            // println!("string: {}", self.debug_info);
             self.bus.write(0xFF02, 0);
         }
 

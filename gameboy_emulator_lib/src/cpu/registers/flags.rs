@@ -91,15 +91,13 @@ impl From<u8> for Flags {
 
 impl fmt::Display for Flags {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            r#"
-zero       : {}
-sub        : {}
-half_carry : {}
-carry      : {}"#,
-            self.zero, self.sub, self.half_carry, self.carry
-        )
+        // write!(
+        //     f,
+        //     r#"{}{}{}{}"#,
+        //     self.zero as u8, self.sub as u8, self.half_carry as u8, self.carry as u8
+        // )
+        let n:u8 = self.clone().into();
+        write!(f, r#"{:02X}"#, n)
     }
 }
 

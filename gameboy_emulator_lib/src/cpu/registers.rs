@@ -126,14 +126,8 @@ impl fmt::Display for Registers {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            r#"
-PC: 0x{:04x} SP: 0x{:04x}
-A: 0x{:02x} 
-{}
-B: 0x{:02x} C: 0x{:02x}
-D: 0x{:02x} E: 0x{:02x}
-H: 0x{:02x} L: 0x{:02x}"#,
-            self.pc, self.sp, self.a, self.f, self.b, self.c, self.d, self.e, self.h, self.l
+            r#"A: {:02X} F: {} B: {:02X} C: {:02X} D: {:02X} E: {:02X} H: {:02X} L: {:02X} SP: {:04X} PC: 00:{:04X}"#,
+            self.a, self.f, self.b, self.c, self.d, self.e, self.h, self.l, self.sp, self.pc
         )
     }
 }

@@ -13,14 +13,9 @@ struct Cli {
 fn main() {
     let cli = Cli::parse();
 
-    println!("Gameboy Emulator !");
-
     let rom = Rom::new(cli.path.to_string());
 
-    rom.stat();
-
     let cart = Cartridge::new(rom.data.clone());
-    cart.header.print();
 
     let mut cpu = CPU::new(cart);
 

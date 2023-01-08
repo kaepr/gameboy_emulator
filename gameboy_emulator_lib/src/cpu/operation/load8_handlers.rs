@@ -125,12 +125,12 @@ pub fn ldh(cpu: &mut CPU, dest: Load8Dest, _src: Load8Src) {
     match dest {
         Load8Dest::Unsigned8 => {
             let d8 = cpu.fetch_byte();
-            let addr = 0xFF00 | (d8 as u16);
+            let addr = 0xFF00 + (d8 as u16);
             cpu.write_byte(addr, cpu.registers.a);
         }
         Load8Dest::A => {
             let d8 = cpu.fetch_byte();
-            let addr = 0xFF00 | (d8 as u16);
+            let addr = 0xFF00 + (d8 as u16);
             let byte = cpu.read_byte_bus(addr);
             cpu.registers.a = byte;
         }
