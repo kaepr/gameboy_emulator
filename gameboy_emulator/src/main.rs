@@ -1,4 +1,4 @@
-use gameboy_emulator_lib::{cartridge::Cartridge, cpu::CPU};
+use gameboy_emulator_lib::{cartridge::Cartridge, cpu::CPU, rom::Rom};
 
 use clap::Parser;
 
@@ -15,15 +15,19 @@ fn main() {
 
     println!("Gameboy Emulator !");
 
-    let cart = Cartridge::new(cli.path.to_string());
+    let rom = Rom::new(cli.path.to_string());
 
-    cart.stat();
+    rom.stat();
+
+    let cart = Cartridge::new(rom.data.clone());
+    cart.header.print();
 
     let mut cpu = CPU::new();
 
-    cpu.bus.load_cart(&cart);
+    cpu.bus.load_cart(&rom);
 
     loop {
+        break;
         if !(true) {
             break;
         }
