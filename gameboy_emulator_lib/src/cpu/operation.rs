@@ -1,6 +1,19 @@
 use crate::{alu16, alu8, bit, jump, load16, load8, misc};
 
-use self::opcodes::*;
+use self::{
+    alu16_handlers::{add as add16, dec as dec16, inc as inc16},
+    alu8_handlers::{
+        adc, add, and, ccf, cp, cpl, daa, dec as dec8, inc as inc8, or, sbc, scf, sub, xor,
+    },
+    bit_handlers::{bit, res, rla, rlca, rra, rrca, set},
+    jump_handlers::{call, jp, jp_hl, jr, ret, reti, rst},
+    load16_handlers::{ld as ld16, pop, push},
+    load8_handlers::{ld as ld8, ldh},
+    misc_handlers::{di, nop},
+    opcodes::*,
+};
+
+use super::CPU;
 
 ///
 /// Below link used as a reference for constructing enums
@@ -9,12 +22,12 @@ use self::opcodes::*;
 
 const PREFIX_INST: u8 = 0xCB;
 
+pub mod alu16_handlers;
+pub mod alu8_handlers;
 pub mod bit_handlers;
 pub mod jump_handlers;
 pub mod load16_handlers;
 pub mod load8_handlers;
-pub mod alu8_handlers;
-pub mod alu16_handlers;
 pub mod misc_handlers;
 pub mod opcode_macros;
 pub mod opcodes;
@@ -31,6 +44,75 @@ pub enum Operation {
 }
 
 impl Operation {
+    pub fn execute(cpu: &mut CPU, inst: Self) {
+        match inst {
+            Operation::Misc(o) => match o {
+                MiscOp::NOP => nop(cpu),
+                MiscOp::STOP => todo!(),
+                MiscOp::HALT => todo!(),
+                MiscOp::PREFIX => (),
+                MiscOp::EI => todo!(),
+                MiscOp::DI => di(cpu),
+            },
+            Operation::Load8(o) => match o {
+                Load8Op::LD(dest, src) => ld8(cpu, dest, src),
+                Load8Op::LDH(dest, src) => ldh(cpu, dest, src),
+            },
+            Operation::Load16(o) => match o {
+                Load16Op::LD(dest, src) => ld16(cpu, dest, src),
+                Load16Op::POP(dest) => pop(cpu, dest),
+                Load16Op::PUSH(dest) => push(cpu, dest),
+            },
+            Operation::ALU16(o) => match o {
+                ALU16Op::INC(dest) => inc16(cpu, dest),
+                ALU16Op::ADD(dest, src) => add16(cpu, dest, src),
+                ALU16Op::DEC(dest) => dec16(cpu, dest),
+            },
+            Operation::ALU8(o) => match o {
+                ALU8Op::DAA => daa(cpu),
+                ALU8Op::CPL => cpl(cpu),
+                ALU8Op::SCF => scf(cpu),
+                ALU8Op::CCF => ccf(cpu),
+                ALU8Op::INC(dest) => inc8(cpu, dest),
+                ALU8Op::DEC(dest) => dec8(cpu, dest),
+                ALU8Op::SUB(dest) => sub(cpu, dest),
+                ALU8Op::AND(dest) => and(cpu, dest),
+                ALU8Op::XOR(dest) => xor(cpu, dest),
+                ALU8Op::OR(dest) => or(cpu, dest),
+                ALU8Op::CP(dest) => cp(cpu, dest),
+                ALU8Op::ADD(dest, src) => add(cpu, dest, src),
+                ALU8Op::ADC(dest, src) => adc(cpu, dest, src),
+                ALU8Op::SBC(dest, src) => sbc(cpu, dest, src),
+            },
+            Operation::Bit(o) => match o {
+                BitOp::RLCA => rlca(cpu),
+                BitOp::RRCA => rrca(cpu),
+                BitOp::RLA => rla(cpu),
+                BitOp::RRA => rra(cpu),
+                BitOp::RLC(_) => todo!(),
+                BitOp::RRC(_) => todo!(),
+                BitOp::RL(_) => todo!(),
+                BitOp::RR(_) => todo!(),
+                BitOp::SLA(_) => todo!(),
+                BitOp::SRA(_) => todo!(),
+                BitOp::SWAP(_) => todo!(),
+                BitOp::SRL(_) => todo!(),
+                BitOp::BIT(pos, dest) => bit(cpu, pos, dest),
+                BitOp::RES(pos, dest) => res(cpu, pos, dest),
+                BitOp::SET(pos, dest) => set(cpu, pos, dest),
+            },
+            Operation::Jump(o) => match o {
+                JumpOp::RETI => reti(cpu),
+                JumpOp::JR(f) => jr(cpu, f),
+                JumpOp::JPToHL => jp_hl(cpu),
+                JumpOp::JP(f) => jp(cpu, f),
+                JumpOp::RET(f) => ret(cpu, f),
+                JumpOp::CALL(f) => call(cpu, f),
+                JumpOp::RST(t) => rst(cpu, t),
+            },
+        }
+    }
+
     pub fn get_operation(opcode: u8, prefixed: bool) -> Option<Operation> {
         let opcode = Self::construct_opcode(opcode, prefixed);
 

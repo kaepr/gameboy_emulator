@@ -1,11 +1,21 @@
 use gameboy_emulator_lib::{cartridge::Cartridge, cpu::CPU};
 
+use clap::Parser;
+
+#[derive(Parser, Debug)]
+#[clap(author, version, about)]
+struct Cli {
+    /// Relative path to the Gameboy Rom
+    #[arg(long)]
+    path: String,
+}
+
 fn main() {
+    let cli = Cli::parse();
+
     println!("Gameboy Emulator !");
 
-    let rom_path = "../../projects/test_roms/07-jr,jp,call,ret,rst.gb";
-
-    let cart = Cartridge::new(rom_path.to_string());
+    let cart = Cartridge::new(cli.path.to_string());
 
     cart.stat();
 

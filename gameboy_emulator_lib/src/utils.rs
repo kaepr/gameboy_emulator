@@ -21,6 +21,37 @@ pub fn is_half_carry_inc8(a: u8, b: u8) -> bool {
     (((a & 0x0F) + (b & 0x0F)) & 0x10) == 0x10
 }
 
+pub trait HalfCarryCheck {
+    type Item;
+
+    fn half_carry_add(&self, other: Self::Item) -> bool;
+    fn half_carry_sub(&self, other: Self::Item) -> bool;
+}
+
+impl HalfCarryCheck for u8 {
+    type Item = u8;
+
+    fn half_carry_add(&self, other: Self::Item) -> bool {
+        (((self & 0x0F) + (other & 0x0F)) & 0xF0) > 0x0F
+    }
+
+    fn half_carry_sub(&self, other: Self::Item) -> bool {
+        (self & 0x0F) < (other & 0x0F)
+    }
+}
+
+impl HalfCarryCheck for u16 {
+    type Item = u16;
+
+    fn half_carry_add(&self, other: Self::Item) -> bool {
+        ((self & 0x0FFF) + (other & 0x0FFF)) > 0x0FFF
+    }
+
+    fn half_carry_sub(&self, other: Self::Item) -> bool {
+        (self & 0x0F) < (other & 0x0F)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::{bytes_to_word, is_bit_set, is_half_carry_inc8, word_to_bytes};

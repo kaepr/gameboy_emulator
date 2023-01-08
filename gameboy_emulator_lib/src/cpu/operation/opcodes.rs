@@ -95,7 +95,6 @@ pub enum ALU16Dest {
 #[derive(PartialEq, Debug, Clone, Copy)]
 pub enum ALU16Src {
     Signed8,
-    NIL,
     BC,
     DE,
     HL,
@@ -125,7 +124,6 @@ pub enum ALU8Dest {
 
 #[derive(PartialEq, Debug, Clone, Copy)]
 pub enum ALU8Src {
-    NIL,
     B,
     C,
     D,
@@ -236,14 +234,14 @@ pub enum JumpCondition {
 
 #[derive(PartialEq, Debug, Clone, Copy)]
 pub enum RSTTarget {
-    X00,
-    X08,
-    X10,
-    X18,
-    X20,
-    X28,
-    X30,
-    X38,
+    X00 = 0x00,
+    X08 = 0x08,
+    X10 = 0x10,
+    X18 = 0x18,
+    X20 = 0x20,
+    X28 = 0x28,
+    X30 = 0x30,
+    X38 = 0x38,
 }
 
 #[derive(PartialEq, Debug, Clone, Copy)]

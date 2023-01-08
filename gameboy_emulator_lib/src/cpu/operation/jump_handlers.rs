@@ -1,9 +1,9 @@
 use crate::{
-    cpu::{Cycles, CPU},
+    cpu::{registers::Reg16, Cycles, CPU},
     utils::{le_bytes_to_word, word_to_bytes},
 };
 
-use super::opcodes::JumpCondition;
+use super::opcodes::{JumpCondition, RSTTarget};
 
 macro_rules! to_jump {
     ($cpu: ident, $jump_condition: ident) => {
@@ -92,4 +92,24 @@ pub fn reti(cpu: &mut CPU) {
     cpu.add_cycles(Cycles::N4);
     cpu.registers.pc = le_bytes_to_word(lo, hi);
     cpu.ime = true;
+}
+
+pub fn jp_hl(cpu: &mut CPU) {
+    let addr = cpu.registers.get_reg_pair(Reg16::HL);
+    cpu.registers.pc = addr;
+}
+
+pub fn rst(cpu: &mut CPU, target: RSTTarget) {
+    let addr = le_bytes_to_word(target as u8, 0x00);
+
+    cpu.add_cycles(Cycles::N4);
+    cpu.registers.sp = cpu.registers.sp.wrapping_sub(1);
+
+    let (pc_high, pc_low) = word_to_bytes(cpu.registers.pc);
+
+    cpu.write_byte(cpu.registers.sp, pc_high);
+    cpu.registers.sp = cpu.registers.sp.wrapping_sub(1);
+    cpu.write_byte(cpu.registers.sp, pc_low);
+
+    cpu.registers.pc = addr;
 }
