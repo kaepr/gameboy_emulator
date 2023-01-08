@@ -131,7 +131,7 @@ pub fn rlc(cpu: &mut CPU, dest: BitDest) {
     }
 
     if carry {
-        cpu.registers.f.set_flag(FlagType::Zero);
+        cpu.registers.f.set_flag(FlagType::Carry);
     }
 
     set_value!(cpu, dest, res);
@@ -146,7 +146,7 @@ pub fn rl(cpu: &mut CPU, dest: BitDest) {
     }
 
     if carry {
-        cpu.registers.f.set_flag(FlagType::Zero);
+        cpu.registers.f.set_flag(FlagType::Carry);
     }
 
     set_value!(cpu, dest, res);
@@ -161,7 +161,7 @@ pub fn rrc(cpu: &mut CPU, dest: BitDest) {
     }
 
     if carry {
-        cpu.registers.f.set_flag(FlagType::Zero);
+        cpu.registers.f.set_flag(FlagType::Carry);
     }
 
     set_value!(cpu, dest, res);
@@ -176,7 +176,7 @@ pub fn rr(cpu: &mut CPU, dest: BitDest) {
     }
 
     if carry {
-        cpu.registers.f.set_flag(FlagType::Zero);
+        cpu.registers.f.set_flag(FlagType::Carry);
     }
 
     set_value!(cpu, dest, res);
@@ -195,7 +195,7 @@ pub fn sla(cpu: &mut CPU, dest: BitDest) {
     }
 
     if carry {
-        cpu.registers.f.set_flag(FlagType::Zero);
+        cpu.registers.f.set_flag(FlagType::Carry);
     }
 
     set_value!(cpu, dest, res);
@@ -205,6 +205,8 @@ pub fn sra(cpu: &mut CPU, dest: BitDest) {
     let byte = fetch_value!(cpu, dest);
     let bit_7 = is_bit_set(byte, 7);
     let carry = is_bit_set(byte, 0);
+
+    cpu.registers.f.reset_flags();
 
     let mut res = byte >> 1;
 
@@ -217,7 +219,7 @@ pub fn sra(cpu: &mut CPU, dest: BitDest) {
     }
 
     if carry {
-        cpu.registers.f.set_flag(FlagType::Zero);
+        cpu.registers.f.set_flag(FlagType::Carry);
     }
 
     set_value!(cpu, dest, res);
@@ -246,7 +248,7 @@ pub fn srl(cpu: &mut CPU, dest: BitDest) {
     }
 
     if carry {
-        cpu.registers.f.set_flag(FlagType::Zero);
+        cpu.registers.f.set_flag(FlagType::Carry);
     }
 
     set_value!(cpu, dest, res);

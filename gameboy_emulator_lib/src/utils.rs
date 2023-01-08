@@ -57,7 +57,7 @@ pub fn rotate_right_helper(byte: u8, prev_carry: bool, through_carry: bool) -> (
         let mut res = byte.rotate_right(1);
         res = reset_bit(res, 7);
         if prev_carry {
-            res = reset_bit(res, 7);
+            res = set_bit(res, 7);
         }
         (res, carry)
     } else {

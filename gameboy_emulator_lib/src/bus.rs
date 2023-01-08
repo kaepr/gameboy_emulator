@@ -12,10 +12,9 @@ pub struct Bus {
 
 impl Bus {
     pub fn new(cartridge: Cartridge) -> Self {
-        Bus {
-            cartridge,
-            memory: [0; 0x10000],
-        }
+        let mut memory = [0; 0x10000];
+        memory[0xFF44] = 0x90; // used for blarrgs test
+        Bus { cartridge, memory }
     }
 
     pub fn read(&self, address: u16) -> u8 {

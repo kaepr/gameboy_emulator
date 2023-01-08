@@ -221,25 +221,22 @@ pub fn add(cpu: &mut CPU, _dest: ALU8Dest, src: ALU8Src) {
 pub fn adc(cpu: &mut CPU, _dest: ALU8Dest, src: ALU8Src) {
     let byte = get_reg_src!(cpu, src);
     let acc = cpu.registers.a;
-
-    let (res, carry) = acc
-        .wrapping_add(cpu.registers.f.carry as u8)
-        .overflowing_add(byte);
+    let prev_carry = cpu.registers.f.carry as u8;
+    let res = acc.wrapping_add(prev_carry).wrapping_add(byte);
 
     cpu.registers.a = res;
-
     cpu.registers.f.reset_flags();
+
+    if ((acc & 0xF) + (byte & 0xF)) + prev_carry > 0xF {
+        cpu.registers.f.set_flag(FlagType::HalfCarry);
+    }
 
     if res == 0 {
         cpu.registers.f.set_flag(FlagType::Zero);
     }
 
-    if carry {
+    if acc as u16 + byte as u16 + prev_carry as u16 > 0xFF {
         cpu.registers.f.set_flag(FlagType::Carry);
-    }
-
-    if acc.half_carry_add(byte) {
-        cpu.registers.f.set_flag(FlagType::HalfCarry);
     }
 }
 
