@@ -49,12 +49,12 @@ pub fn jp(cpu: &mut CPU, flag: JumpCondition) {
 }
 
 pub fn jr(cpu: &mut CPU, flag: JumpCondition) {
-    let s8 = cpu.fetch_byte();
+    let r8 = cpu.fetch_byte();
     let to_jump = to_jump!(cpu, flag);
 
     if to_jump {
         cpu.add_cycles(Cycles::N4);
-        cpu.registers.pc = cpu.registers.pc.wrapping_add((s8 as i8) as u16);
+        cpu.registers.pc = cpu.registers.pc.wrapping_add((r8 as i8) as u16);
     }
 }
 

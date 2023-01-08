@@ -22,7 +22,7 @@ fn main() {
     let cart = Cartridge::new(rom.data.clone());
     cart.header.print();
 
-    let mut cpu = CPU::new();
+    let mut cpu = CPU::new(cart);
 
     cpu.bus.load_cart(&rom);
 

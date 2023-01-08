@@ -1,4 +1,8 @@
-use crate::{bus::Bus, utils::word_to_bytes};
+use crate::{
+    bus::Bus,
+    cartridge::{self, Cartridge},
+    utils::word_to_bytes,
+};
 
 use self::{operation::Operation, registers::Registers};
 
@@ -30,11 +34,11 @@ pub struct InstructionReturn {
 }
 
 impl CPU {
-    pub fn new() -> Self {
+    pub fn new(cartridge: Cartridge) -> Self {
         CPU {
             registers: Registers::new(),
             cycles: 0,
-            bus: Bus::new(),
+            bus: Bus::new(cartridge),
             ime: false,
         }
     }

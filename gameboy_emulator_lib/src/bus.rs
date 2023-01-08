@@ -1,4 +1,4 @@
-use crate::{rom::Rom, utils::bytes_to_word};
+use crate::{cartridge::Cartridge, rom::Rom};
 
 pub trait Memory {
     fn read(&self, address: u16) -> u8;
@@ -6,22 +6,30 @@ pub trait Memory {
 }
 
 pub struct Bus {
+    cartridge: Cartridge,
     memory: [u8; 0x10000],
 }
 
 impl Bus {
-    pub fn new() -> Self {
+    pub fn new(cartridge: Cartridge) -> Self {
         Bus {
+            cartridge,
             memory: [0; 0x10000],
         }
     }
 
-    pub fn read(&self, addr: u16) -> u8 {
-        self.memory[addr as usize]
+    pub fn read(&self, address: u16) -> u8 {
+        match address {
+            0x0000..=0x7FFF => self.cartridge.read(address),
+            _ => self.memory[address as usize],
+        }
     }
 
-    pub fn write(&mut self, addr: u16, value: u8) {
-        self.memory[addr as usize] = value;
+    pub fn write(&mut self, address: u16, byte: u8) {
+        match address {
+            0x0000..=0x7FFF => self.cartridge.write(address, byte),
+            _ => self.memory[address as usize] = byte,
+        }
     }
 
     pub fn load_cart(&mut self, cart: &Rom) {
