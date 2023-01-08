@@ -24,8 +24,6 @@ fn main() {
 
     let mut cpu = CPU::new(cart);
 
-    cpu.bus.load_cart(&rom);
-
     loop {
         if !(true) {
             break;

@@ -1,4 +1,4 @@
-use crate::{cartridge::Cartridge, rom::Rom};
+use crate::cartridge::Cartridge;
 
 pub trait Memory {
     fn read(&self, address: u16) -> u8;
@@ -29,14 +29,6 @@ impl Bus {
         match address {
             0x0000..=0x7FFF => self.cartridge.write(address, byte),
             _ => self.memory[address as usize] = byte,
-        }
-    }
-
-    pub fn load_cart(&mut self, cart: &Rom) {
-        // Currently load the entire ROM
-        // Will be changed later
-        for addr in 0x0000..cart.data.len() - 1 {
-            self.write(addr as u16, cart.data[addr]);
         }
     }
 }
