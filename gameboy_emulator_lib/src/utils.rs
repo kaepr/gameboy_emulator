@@ -13,12 +13,58 @@ pub fn is_bit_set(byte: u8, pos: u8) -> bool {
     (mask & byte) != 0
 }
 
+pub fn reset_bit(byte: u8, pos: u8) -> u8 {
+    let mask = 1 << pos;
+    byte & !mask
+}
+
+pub fn set_bit(byte: u8, pos: u8) -> u8 {
+    let mask = 1 << pos;
+    byte | mask
+}
+
+pub fn swap_nibbles(byte: u8) -> u8 {
+    byte.rotate_right(4)
+}
+
 pub fn le_bytes_to_word(low: u8, high: u8) -> u16 {
     u16::from_le_bytes([low, high])
 }
 
 pub fn is_half_carry_inc8(a: u8, b: u8) -> bool {
     (((a & 0x0F) + (b & 0x0F)) & 0x10) == 0x10
+}
+
+pub fn rotate_left_helper(byte: u8, prev_carry: bool, through_carry: bool) -> (u8, bool) {
+    if through_carry {
+        let carry = is_bit_set(byte, 7);
+        let mut res = byte.rotate_left(1);
+        res = reset_bit(res, 0);
+        if prev_carry {
+            res = set_bit(res, 0);
+        }
+        (res, carry)
+    } else {
+        let carry = is_bit_set(byte, 7);
+        let res = byte.rotate_left(1);
+        (res, carry)
+    }
+}
+
+pub fn rotate_right_helper(byte: u8, prev_carry: bool, through_carry: bool) -> (u8, bool) {
+    if through_carry {
+        let carry = is_bit_set(byte, 0);
+        let mut res = byte.rotate_right(1);
+        res = reset_bit(res, 7);
+        if prev_carry {
+            res = reset_bit(res, 7);
+        }
+        (res, carry)
+    } else {
+        let carry = is_bit_set(byte, 0);
+        let res = byte.rotate_right(1);
+        (res, carry)
+    }
 }
 
 pub trait HalfCarryCheck {

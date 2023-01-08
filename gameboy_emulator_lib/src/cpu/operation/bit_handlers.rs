@@ -3,7 +3,9 @@ use crate::{
         registers::{flags::FlagType, Reg16},
         CPU,
     },
-    utils::is_bit_set,
+    utils::{
+        is_bit_set, reset_bit, rotate_left_helper, rotate_right_helper, set_bit, swap_nibbles,
+    },
 };
 
 use super::opcodes::{BitDest, BitPos};
@@ -77,121 +79,175 @@ pub fn bit(cpu: &mut CPU, pos: BitPos, src: BitDest) {
 }
 
 pub fn rlca(cpu: &mut CPU) {
-    let acc = cpu.registers.a;
+    let (res, carry) = rotate_left_helper(cpu.registers.a, cpu.registers.f.carry, false);
     cpu.registers.f.reset_flags();
-
-    let carry = (acc & 0b10000000) > 0;
 
     if carry {
         cpu.registers.f.set_flag(FlagType::Carry);
     }
 
-    cpu.registers.a = acc.rotate_left(1);
+    cpu.registers.a = res;
 }
 
 pub fn rla(cpu: &mut CPU) {
-    let mut acc = cpu.registers.a;
+    let (res, carry) = rotate_left_helper(cpu.registers.a, cpu.registers.f.carry, true);
     cpu.registers.f.reset_flags();
-
-    let bit_0 = cpu.registers.f.carry;
-
-    let carry = (acc & 0b10000000) > 0;
 
     if carry {
         cpu.registers.f.set_flag(FlagType::Carry);
     }
 
-    acc = acc.rotate_left(1);
-
-    if !bit_0 {
-        acc = acc & 0b11111110;
-    } else {
-        acc = acc | 0b11111111;
-    }
-
-    cpu.registers.a = acc;
+    cpu.registers.a = res;
 }
 
 pub fn rrca(cpu: &mut CPU) {
-    let acc = cpu.registers.a;
+    let (res, carry) = rotate_right_helper(cpu.registers.a, cpu.registers.f.carry, false);
     cpu.registers.f.reset_flags();
-
-    let carry = acc & 0b00000001 > 0;
 
     if carry {
         cpu.registers.f.set_flag(FlagType::Carry);
     }
 
-    cpu.registers.a = acc.rotate_right(1);
+    cpu.registers.a = res;
 }
 
 pub fn rra(cpu: &mut CPU) {
-    let mut acc = cpu.registers.a;
+    let (res, carry) = rotate_right_helper(cpu.registers.a, cpu.registers.f.carry, true);
     cpu.registers.f.reset_flags();
-
-    let bit_7 = cpu.registers.f.carry;
-
-    let carry = (acc & 0b00000001) > 0;
 
     if carry {
         cpu.registers.f.set_flag(FlagType::Carry);
     }
 
-    acc = acc.rotate_right(1);
-
-    if !bit_7 {
-        acc = acc & 0b01111111;
-    } else {
-        acc = acc | 0b11111111;
-    }
-
-    cpu.registers.a = acc;
-}
-
-fn rlc_helper(byte: u8) -> (u8, bool) {
-    let res = byte.rotate_left(1);
-    let carry = (res & 0b00000001) > 0;
-    (res, carry)
+    cpu.registers.a = res;
 }
 
 pub fn rlc(cpu: &mut CPU, dest: BitDest) {
+    let (res, carry) = rotate_left_helper(fetch_value!(cpu, dest), cpu.registers.f.carry, false);
     cpu.registers.f.reset_flags();
-    let (res, carry) = rlc_helper(fetch_value!(cpu, dest));
-    cpu.registers.a = res;
 
     if res == 0 {
         cpu.registers.f.set_flag(FlagType::Zero);
     }
 
     if carry {
-        cpu.registers.f.set_flag(FlagType::Carry);
+        cpu.registers.f.set_flag(FlagType::Zero);
     }
+
+    set_value!(cpu, dest, res);
 }
 
 pub fn rl(cpu: &mut CPU, dest: BitDest) {
+    let (res, carry) = rotate_left_helper(fetch_value!(cpu, dest), cpu.registers.f.carry, true);
     cpu.registers.f.reset_flags();
+
+    if res == 0 {
+        cpu.registers.f.set_flag(FlagType::Zero);
+    }
+
+    if carry {
+        cpu.registers.f.set_flag(FlagType::Zero);
+    }
+
+    set_value!(cpu, dest, res);
 }
 
 pub fn rrc(cpu: &mut CPU, dest: BitDest) {
+    let (res, carry) = rotate_right_helper(fetch_value!(cpu, dest), cpu.registers.f.carry, false);
     cpu.registers.f.reset_flags();
+
+    if res == 0 {
+        cpu.registers.f.set_flag(FlagType::Zero);
+    }
+
+    if carry {
+        cpu.registers.f.set_flag(FlagType::Zero);
+    }
+
+    set_value!(cpu, dest, res);
 }
 
 pub fn rr(cpu: &mut CPU, dest: BitDest) {
+    let (res, carry) = rotate_right_helper(fetch_value!(cpu, dest), cpu.registers.f.carry, true);
     cpu.registers.f.reset_flags();
+
+    if res == 0 {
+        cpu.registers.f.set_flag(FlagType::Zero);
+    }
+
+    if carry {
+        cpu.registers.f.set_flag(FlagType::Zero);
+    }
+
+    set_value!(cpu, dest, res);
 }
 
 pub fn sla(cpu: &mut CPU, dest: BitDest) {
+    let byte = fetch_value!(cpu, dest);
     cpu.registers.f.reset_flags();
+
+    let carry = is_bit_set(byte, 7);
+
+    let res = byte << 1;
+
+    if res == 0 {
+        cpu.registers.f.set_flag(FlagType::Zero);
+    }
+
+    if carry {
+        cpu.registers.f.set_flag(FlagType::Zero);
+    }
+
+    set_value!(cpu, dest, res);
 }
 
 pub fn sra(cpu: &mut CPU, dest: BitDest) {
-    cpu.registers.f.reset_flags();
+    let byte = fetch_value!(cpu, dest);
+    let bit_7 = is_bit_set(byte, 7);
+    let carry = is_bit_set(byte, 0);
+
+    let mut res = byte >> 1;
+
+    if bit_7 {
+        res = set_bit(res, 7);
+    }
+
+    if res == 0 {
+        cpu.registers.f.set_flag(FlagType::Zero);
+    }
+
+    if carry {
+        cpu.registers.f.set_flag(FlagType::Zero);
+    }
+
+    set_value!(cpu, dest, res);
 }
 
 pub fn swap(cpu: &mut CPU, dest: BitDest) {
+    let res = swap_nibbles(fetch_value!(cpu, dest));
     cpu.registers.f.reset_flags();
+
+    if res == 0 {
+        cpu.registers.f.set_flag(FlagType::Zero);
+    }
+
+    set_value!(cpu, dest, res);
 }
 
 pub fn srl(cpu: &mut CPU, dest: BitDest) {
+    let byte = fetch_value!(cpu, dest);
     cpu.registers.f.reset_flags();
+    let res = byte >> 1;
+
+    let carry = is_bit_set(byte, 0);
+
+    if res == 0 {
+        cpu.registers.f.set_flag(FlagType::Zero);
+    }
+
+    if carry {
+        cpu.registers.f.set_flag(FlagType::Zero);
+    }
+
+    set_value!(cpu, dest, res);
 }

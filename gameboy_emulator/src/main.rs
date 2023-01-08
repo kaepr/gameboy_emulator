@@ -27,7 +27,6 @@ fn main() {
     cpu.bus.load_cart(&rom);
 
     loop {
-        break;
         if !(true) {
             break;
         }
