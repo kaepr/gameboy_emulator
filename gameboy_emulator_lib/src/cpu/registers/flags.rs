@@ -88,7 +88,7 @@ impl fmt::Display for Flags {
         //     r#"{}{}{}{}"#,
         //     self.zero as u8, self.sub as u8, self.half_carry as u8, self.carry as u8
         // )
-        let n: u8 = self.clone().into();
+        let n: u8 = (*self).into();
         write!(f, r#"{:02X}"#, n)
     }
 }

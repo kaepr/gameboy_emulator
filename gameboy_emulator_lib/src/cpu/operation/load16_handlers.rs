@@ -67,7 +67,7 @@ pub fn ld(cpu: &mut CPU, dest: Load16Dest, src: Load16Src) {
         }
         Load16Dest::SP => {
             cpu.registers.set_reg_pair(res, Reg16::SP);
-            cpu.add_cycles(Cycles::N4);
+            cpu.tick();
         }
         _ => panic!("Invalid choice of enum variant"),
     };
@@ -101,7 +101,7 @@ pub fn push(cpu: &mut CPU, dest: Load16Dest) {
 
     let (hi, lo) = word_to_bytes(word);
 
-    cpu.add_cycles(Cycles::N4);
+    cpu.tick();
     cpu.registers.sp = cpu.registers.sp.wrapping_sub(1);
     cpu.write_byte(cpu.registers.sp, hi);
     cpu.registers.sp = cpu.registers.sp.wrapping_sub(1);

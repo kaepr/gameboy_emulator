@@ -25,7 +25,7 @@ pub fn call(cpu: &mut CPU, flag: JumpCondition) {
     let to_jump = to_jump!(cpu, flag);
 
     if to_jump {
-        cpu.add_cycles(Cycles::N4);
+        cpu.tick();
         cpu.registers.sp = cpu.registers.sp.wrapping_sub(1);
         let (pc_high, pc_low) = word_to_bytes(cpu.registers.pc);
         cpu.write_byte(cpu.registers.sp, pc_high);
@@ -43,7 +43,7 @@ pub fn jp(cpu: &mut CPU, flag: JumpCondition) {
     let to_jump = to_jump!(cpu, flag);
 
     if to_jump {
-        cpu.add_cycles(Cycles::N4);
+        cpu.tick();
         cpu.registers.pc = addr;
     }
 }
@@ -53,7 +53,7 @@ pub fn jr(cpu: &mut CPU, flag: JumpCondition) {
     let to_jump = to_jump!(cpu, flag);
 
     if to_jump {
-        cpu.add_cycles(Cycles::N4);
+        cpu.tick();
         cpu.registers.pc = cpu.registers.pc.wrapping_add((r8 as i8) as u16);
     }
 }
@@ -65,19 +65,19 @@ pub fn ret(cpu: &mut CPU, flag: JumpCondition) {
             cpu.registers.sp = cpu.registers.sp.wrapping_add(1);
             let hi = cpu.read_byte_bus(cpu.registers.sp);
             cpu.registers.sp = cpu.registers.sp.wrapping_add(1);
-            cpu.add_cycles(Cycles::N4);
+            cpu.tick();
             cpu.registers.pc = le_bytes_to_word(lo, hi);
         }
         _ => {
             let to_jump = to_jump!(cpu, flag);
-            cpu.add_cycles(Cycles::N4);
+            cpu.tick();
 
             if to_jump {
                 let lo = cpu.read_byte_bus(cpu.registers.sp);
                 cpu.registers.sp = cpu.registers.sp.wrapping_add(1);
                 let hi = cpu.read_byte_bus(cpu.registers.sp);
                 cpu.registers.sp = cpu.registers.sp.wrapping_add(1);
-                cpu.add_cycles(Cycles::N4);
+                cpu.tick();
                 cpu.registers.pc = le_bytes_to_word(lo, hi);
             }
         }
@@ -89,7 +89,7 @@ pub fn reti(cpu: &mut CPU) {
     cpu.registers.sp = cpu.registers.sp.wrapping_add(1);
     let hi = cpu.read_byte_bus(cpu.registers.sp);
     cpu.registers.sp = cpu.registers.sp.wrapping_add(1);
-    cpu.add_cycles(Cycles::N4);
+    cpu.tick();
     cpu.registers.pc = le_bytes_to_word(lo, hi);
     cpu.ime = true;
 }
@@ -102,7 +102,7 @@ pub fn jp_hl(cpu: &mut CPU) {
 pub fn rst(cpu: &mut CPU, target: RSTTarget) {
     let addr = le_bytes_to_word(target as u8, 0x00);
 
-    cpu.add_cycles(Cycles::N4);
+    cpu.tick();
     cpu.registers.sp = cpu.registers.sp.wrapping_sub(1);
 
     let (pc_high, pc_low) = word_to_bytes(cpu.registers.pc);

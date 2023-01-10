@@ -22,21 +22,6 @@ pub fn word_to_bytes(word: u16) -> (u8, u8) {
     (high, low)
 }
 
-pub fn is_bit_set(byte: u8, pos: usize) -> bool {
-    let mask = 1 << pos;
-    (byte & mask) != 0
-}
-
-pub fn is_bit_set_16(byte: u16, pos: usize) -> bool {
-    let mask = 1 << pos;
-    (byte & mask) != 0
-}
-
-// pub fn is_bit_set(byte: u8, pos: u8) -> bool {
-//     let mask = 1 << pos;
-//     (mask & byte) != 0
-// }
-
 pub fn reset_bit(byte: u8, pos: u8) -> u8 {
     let mask = 1 << pos;
     byte & !mask
@@ -55,13 +40,9 @@ pub fn le_bytes_to_word(low: u8, high: u8) -> u16 {
     u16::from_le_bytes([low, high])
 }
 
-pub fn is_half_carry_inc8(a: u8, b: u8) -> bool {
-    (((a & 0x0F) + (b & 0x0F)) & 0x10) == 0x10
-}
-
 pub fn rotate_left_helper(byte: u8, prev_carry: bool, through_carry: bool) -> (u8, bool) {
     if through_carry {
-        let carry = is_bit_set(byte, 7);
+        let carry = byte.is_bit_set(7);
         let mut res = byte.rotate_left(1);
         res = reset_bit(res, 0);
         if prev_carry {
@@ -69,7 +50,7 @@ pub fn rotate_left_helper(byte: u8, prev_carry: bool, through_carry: bool) -> (u
         }
         (res, carry)
     } else {
-        let carry = is_bit_set(byte, 7);
+        let carry = byte.is_bit_set(7);
         let res = byte.rotate_left(1);
         (res, carry)
     }
@@ -77,7 +58,7 @@ pub fn rotate_left_helper(byte: u8, prev_carry: bool, through_carry: bool) -> (u
 
 pub fn rotate_right_helper(byte: u8, prev_carry: bool, through_carry: bool) -> (u8, bool) {
     if through_carry {
-        let carry = is_bit_set(byte, 0);
+        let carry = byte.is_bit_set(0);
         let mut res = byte.rotate_right(1);
         res = reset_bit(res, 7);
         if prev_carry {
@@ -85,7 +66,7 @@ pub fn rotate_right_helper(byte: u8, prev_carry: bool, through_carry: bool) -> (
         }
         (res, carry)
     } else {
-        let carry = is_bit_set(byte, 0);
+        let carry = byte.is_bit_set(0);
         let res = byte.rotate_right(1);
         (res, carry)
     }
@@ -122,15 +103,27 @@ impl HalfCarryCheck for u16 {
     }
 }
 
+pub trait BitPosCheck {
+    fn is_bit_set(&self, position: usize) -> bool;
+}
+
+impl BitPosCheck for u8 {
+    fn is_bit_set(&self, position: usize) -> bool {
+        (self & (1 << position)) != 0
+    }
+}
+
+impl BitPosCheck for u16 {
+    fn is_bit_set(&self, position: usize) -> bool {
+        (self & (1 << position)) != 0
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{bytes_to_word, is_bit_set, is_half_carry_inc8, word_to_bytes};
+    use crate::utils::BitPosCheck;
 
-    #[test]
-    fn test_half_carry() {
-        assert_eq!(true, is_half_carry_inc8(10, 12));
-        assert_eq!(false, is_half_carry_inc8(5, 4));
-    }
+    use super::{bytes_to_word, word_to_bytes};
 
     #[test]
     fn test_bytes_to_word() {
@@ -149,14 +142,14 @@ mod tests {
 
     #[test]
     fn test_is_bit_set() {
-        let n = 0xFD;
-        assert_eq!(is_bit_set(n, 0), true);
-        assert_eq!(is_bit_set(n, 1), false);
-        assert_eq!(is_bit_set(n, 2), true);
-        assert_eq!(is_bit_set(n, 3), true);
-        assert_eq!(is_bit_set(n, 4), true);
-        assert_eq!(is_bit_set(n, 5), true);
-        assert_eq!(is_bit_set(n, 6), true);
-        assert_eq!(is_bit_set(n, 7), true);
+        let n: u8 = 0xFD;
+        assert!(n.is_bit_set(0));
+        assert!(n.is_bit_set(1) == false);
+        assert!(n.is_bit_set(2));
+        assert!(n.is_bit_set(3));
+        assert!(n.is_bit_set(4));
+        assert!(n.is_bit_set(5));
+        assert!(n.is_bit_set(6));
+        assert!(n.is_bit_set(7));
     }
 }

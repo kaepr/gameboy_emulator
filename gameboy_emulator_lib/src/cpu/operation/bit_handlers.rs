@@ -3,7 +3,7 @@ use crate::{
         registers::{flags::FlagType, Reg16},
         CPU,
     },
-    utils::{is_bit_set, rotate_left_helper, rotate_right_helper, set_bit, swap_nibbles},
+    utils::{rotate_left_helper, rotate_right_helper, set_bit, swap_nibbles, BitPosCheck},
 };
 
 use super::opcodes::{BitDest, BitPos};
@@ -71,7 +71,7 @@ pub fn bit(cpu: &mut CPU, pos: BitPos, src: BitDest) {
     cpu.registers.f.reset_flag(FlagType::Sub);
     cpu.registers.f.set_flag(FlagType::HalfCarry);
 
-    if !is_bit_set(value, bit_pos.into()) {
+    if !value.is_bit_set(bit_pos.into()) {
         cpu.registers.f.set_flag(FlagType::Zero);
     }
 }
@@ -184,7 +184,7 @@ pub fn sla(cpu: &mut CPU, dest: BitDest) {
     let byte = fetch_value!(cpu, dest);
     cpu.registers.f.reset_flags();
 
-    let carry = is_bit_set(byte, 7);
+    let carry = byte.is_bit_set(7);
 
     let res = byte << 1;
 
@@ -201,8 +201,8 @@ pub fn sla(cpu: &mut CPU, dest: BitDest) {
 
 pub fn sra(cpu: &mut CPU, dest: BitDest) {
     let byte = fetch_value!(cpu, dest);
-    let bit_7 = is_bit_set(byte, 7);
-    let carry = is_bit_set(byte, 0);
+    let bit_7 = byte.is_bit_set(7);
+    let carry = byte.is_bit_set(0);
 
     cpu.registers.f.reset_flags();
 
@@ -239,7 +239,7 @@ pub fn srl(cpu: &mut CPU, dest: BitDest) {
     cpu.registers.f.reset_flags();
     let res = byte >> 1;
 
-    let carry = is_bit_set(byte, 0);
+    let carry = byte.is_bit_set(0);
 
     if res == 0 {
         cpu.registers.f.set_flag(FlagType::Zero);

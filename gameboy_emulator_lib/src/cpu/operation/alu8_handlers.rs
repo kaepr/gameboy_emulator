@@ -153,7 +153,7 @@ fn update_sub_cp(cpu: &mut CPU, byte: u8) -> u8 {
         cpu.registers.f.set_flag(FlagType::HalfCarry);
     }
 
-    if (cpu.registers.a & 0xFF) < (byte & 0xFF) {
+    if cpu.registers.a < byte {
         cpu.registers.f.set_flag(FlagType::Carry);
     }
 

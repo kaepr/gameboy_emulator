@@ -9,9 +9,11 @@ struct Cli {
     #[arg(short, long)]
     path: String,
 
+    /// Show register values
     #[arg(short, long, required = false, default_value_t = false)]
     debug: bool,
 
+    /// Show output in the serial register. Useful for blarrgs's test rom
     #[arg(short, long, required = false, default_value_t = false)]
     serial: bool,
 }
@@ -28,10 +30,6 @@ fn main() {
     let mut cpu = CPU::new(cart, opts);
 
     loop {
-        if !(true) {
-            break;
-        }
-
         cpu.step();
     }
 }

@@ -11,5 +11,5 @@ pub enum InterruptType {
 }
 
 impl Interrupts {
-    pub fn handle_interrupt(cpu: &mut CPU) {}
+    pub fn handle_interrupt(_cpu: &mut CPU) {}
 }

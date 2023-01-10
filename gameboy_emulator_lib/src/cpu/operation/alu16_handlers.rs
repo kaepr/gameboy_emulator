@@ -43,14 +43,14 @@ macro_rules! set_pair {
 pub fn inc(cpu: &mut CPU, dest: ALU16Dest) {
     let word = get_pair_dest!(cpu, dest);
     let res = word.wrapping_add(1);
-    cpu.add_cycles(Cycles::N4);
+    cpu.tick();
     set_pair!(cpu, dest, res);
 }
 
 pub fn dec(cpu: &mut CPU, dest: ALU16Dest) {
     let word = get_pair_dest!(cpu, dest);
     let res = word.wrapping_sub(1);
-    cpu.add_cycles(Cycles::N4);
+    cpu.tick();
     set_pair!(cpu, dest, res);
 }
 
@@ -81,8 +81,8 @@ pub fn add(cpu: &mut CPU, dest: ALU16Dest, src: ALU16Src) {
             }
         }
 
-        cpu.add_cycles(Cycles::N4);
-        cpu.add_cycles(Cycles::N4);
+        cpu.tick();
+        cpu.tick();
 
         cpu.registers.sp = res;
     } else {
@@ -90,7 +90,8 @@ pub fn add(cpu: &mut CPU, dest: ALU16Dest, src: ALU16Src) {
         let word = get_pair_src!(cpu, src);
         let (res, carry) = orig.overflowing_add(word);
 
-        cpu.add_cycles(Cycles::N4);
+        cpu.tick();
+
         set_pair!(cpu, dest, res);
 
         cpu.registers.f.reset_flag(FlagType::Sub);

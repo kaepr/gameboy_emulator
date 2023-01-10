@@ -20,7 +20,7 @@ impl Memory for Cartridge {
         }
     }
 
-    fn write(&mut self, address: u16, byte: u8) {}
+    fn write(&mut self, _address: u16, _byte: u8) {}
 }
 
 impl Cartridge {

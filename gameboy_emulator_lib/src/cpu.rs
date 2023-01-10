@@ -1,6 +1,6 @@
 use crate::{
     bus::{Bus, Memory},
-    cartridge::{self, Cartridge},
+    cartridge::Cartridge,
     utils::{word_to_bytes, Opts},
 };
 
@@ -51,7 +51,13 @@ impl CPU {
         self.execute();
     }
 
-    pub fn tick(&mut self) {}
+    pub fn tick(&mut self) {
+        self.add_cycles(Cycles::N4);
+        self.bus.timer.tick();
+        self.bus.timer.tick();
+        self.bus.timer.tick();
+        self.bus.timer.tick();
+    }
 
     fn add_cycles(&mut self, n_cycles: Cycles) {
         self.cycles += n_cycles as u64;
@@ -60,19 +66,19 @@ impl CPU {
     fn fetch_byte(&mut self) -> u8 {
         let byte = self.bus.read(self.registers.pc);
         self.registers.pc = self.registers.pc.wrapping_add(1);
-        self.add_cycles(Cycles::N4);
+        self.tick();
         byte
     }
 
     fn read_byte_bus(&mut self, addr: u16) -> u8 {
         let byte = self.bus.read(addr);
-        self.add_cycles(Cycles::N4);
+        self.tick();
         byte
     }
 
     fn write_byte(&mut self, addr: u16, byte: u8) {
         self.bus.write(addr, byte);
-        self.add_cycles(Cycles::N4);
+        self.tick();
     }
 
     fn write_word(&mut self, addr: u16, word: u16) {
@@ -116,7 +122,7 @@ impl CPU {
             if b == 0x81 {
                 let c = self.bus.read(0xFF01);
                 self.debug_info.push(c as char);
-                println!("string: {}", self.debug_info);
+                println!("{}", self.debug_info);
                 self.bus.write(0xFF02, 0);
             }
         }

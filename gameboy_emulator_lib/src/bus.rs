@@ -1,9 +1,9 @@
-use crate::{cartridge::Cartridge, timer::Timer};
+use crate::{cartridge::Cartridge, io::timer::Timer};
 
 pub struct Bus {
-    cartridge: Cartridge,
-    timer: Timer,
-    memory: [u8; 0x10000],
+    pub cartridge: Cartridge,
+    pub timer: Timer,
+    pub memory: [u8; 0x10000],
 }
 
 pub trait Memory {
@@ -23,7 +23,7 @@ impl Memory for Bus {
     fn write(&mut self, address: u16, byte: u8) {
         match address {
             0x0000..=0x7FFF => self.cartridge.write(address, byte),
-            // 0xFF04..=0xFF07 => self.timer.write(address, byte),
+            0xFF04..=0xFF07 => self.timer.write(address, byte),
             _ => self.memory[address as usize] = byte,
         }
     }
