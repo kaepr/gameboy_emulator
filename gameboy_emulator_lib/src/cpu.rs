@@ -1,7 +1,7 @@
 use crate::{
-    bus::Bus,
+    bus::{Bus, Memory},
     cartridge::{self, Cartridge},
-    utils::word_to_bytes,
+    utils::{word_to_bytes, Opts},
 };
 
 use self::{operation::Operation, registers::Registers};
@@ -15,6 +15,7 @@ pub struct CPU {
     pub cycles: u64,
     pub ime: bool,
     pub debug_info: String,
+    pub opts: Opts,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -35,19 +36,22 @@ pub struct InstructionReturn {
 }
 
 impl CPU {
-    pub fn new(cartridge: Cartridge) -> Self {
+    pub fn new(cartridge: Cartridge, opts: Opts) -> Self {
         CPU {
             registers: Registers::new(),
             cycles: 0,
             bus: Bus::new(cartridge),
             ime: false,
             debug_info: "".to_string(),
+            opts,
         }
     }
 
     pub fn step(&mut self) {
         self.execute();
     }
+
+    pub fn tick(&mut self) {}
 
     fn add_cycles(&mut self, n_cycles: Cycles) {
         self.cycles += n_cycles as u64;
@@ -89,7 +93,9 @@ impl CPU {
     }
 
     fn execute(&mut self) {
-        // self.print_debug();
+        if self.opts.show_debug_info {
+            self.print_debug();
+        }
 
         let mut opcode = self.fetch_byte();
         let prefixed = Operation::is_prefix(opcode);
@@ -105,14 +111,14 @@ impl CPU {
             None => panic!("Unknown opcode {}, prefixed {}", opcode, prefixed),
         };
 
-        // println!(" => Inst: {:?} {:#06X}", inst, opcode);
-
-        let b = self.bus.read(0xFF02);
-        if b == 0x81 {
-            let c = self.bus.read(0xFF01);
-            self.debug_info.push(c as char);
-            println!("string: {}", self.debug_info);
-            self.bus.write(0xFF02, 0);
+        if self.opts.show_serial_output {
+            let b = self.bus.read(0xFF02);
+            if b == 0x81 {
+                let c = self.bus.read(0xFF01);
+                self.debug_info.push(c as char);
+                println!("string: {}", self.debug_info);
+                self.bus.write(0xFF02, 0);
+            }
         }
 
         Operation::execute(self, inst);

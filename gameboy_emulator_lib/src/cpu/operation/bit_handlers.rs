@@ -3,9 +3,7 @@ use crate::{
         registers::{flags::FlagType, Reg16},
         CPU,
     },
-    utils::{
-        is_bit_set, reset_bit, rotate_left_helper, rotate_right_helper, set_bit, swap_nibbles,
-    },
+    utils::{is_bit_set, rotate_left_helper, rotate_right_helper, set_bit, swap_nibbles},
 };
 
 use super::opcodes::{BitDest, BitPos};
@@ -73,7 +71,7 @@ pub fn bit(cpu: &mut CPU, pos: BitPos, src: BitDest) {
     cpu.registers.f.reset_flag(FlagType::Sub);
     cpu.registers.f.set_flag(FlagType::HalfCarry);
 
-    if !is_bit_set(value, bit_pos) {
+    if !is_bit_set(value, bit_pos.into()) {
         cpu.registers.f.set_flag(FlagType::Zero);
     }
 }

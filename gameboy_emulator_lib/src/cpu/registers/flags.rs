@@ -56,20 +56,12 @@ impl Flags {
     }
 }
 
-fn get_bool_val(b: bool) -> u8 {
-    if b {
-        1
-    } else {
-        0
-    }
-}
-
 impl From<Flags> for u8 {
     fn from(flag: Flags) -> u8 {
-        (get_bool_val(flag.zero) << ZERO_FLAG_BIT_POS)
-            | (get_bool_val(flag.sub) << SUB_FLAG_BIT_POS)
-            | (get_bool_val(flag.half_carry) << HALF_CARRY_BIT_POS)
-            | (get_bool_val(flag.carry) << CARRY_BIT_POS)
+        u8::from(flag.zero) << ZERO_FLAG_BIT_POS
+            | u8::from(flag.sub) << SUB_FLAG_BIT_POS
+            | u8::from(flag.half_carry) << HALF_CARRY_BIT_POS
+            | u8::from(flag.carry) << CARRY_BIT_POS
     }
 }
 
@@ -96,7 +88,7 @@ impl fmt::Display for Flags {
         //     r#"{}{}{}{}"#,
         //     self.zero as u8, self.sub as u8, self.half_carry as u8, self.carry as u8
         // )
-        let n:u8 = self.clone().into();
+        let n: u8 = self.clone().into();
         write!(f, r#"{:02X}"#, n)
     }
 }

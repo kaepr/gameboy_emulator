@@ -1,3 +1,17 @@
+pub struct Opts {
+    pub show_debug_info: bool,
+    pub show_serial_output: bool,
+}
+
+impl Opts {
+    pub fn new(debug: bool, serial: bool) -> Self {
+        Opts {
+            show_debug_info: debug,
+            show_serial_output: serial,
+        }
+    }
+}
+
 pub fn bytes_to_word(high: u8, low: u8) -> u16 {
     ((high as u16) << 8) | (low as u16)
 }
@@ -8,10 +22,20 @@ pub fn word_to_bytes(word: u16) -> (u8, u8) {
     (high, low)
 }
 
-pub fn is_bit_set(byte: u8, pos: u8) -> bool {
+pub fn is_bit_set(byte: u8, pos: usize) -> bool {
     let mask = 1 << pos;
-    (mask & byte) != 0
+    (byte & mask) != 0
 }
+
+pub fn is_bit_set_16(byte: u16, pos: usize) -> bool {
+    let mask = 1 << pos;
+    (byte & mask) != 0
+}
+
+// pub fn is_bit_set(byte: u8, pos: u8) -> bool {
+//     let mask = 1 << pos;
+//     (mask & byte) != 0
+// }
 
 pub fn reset_bit(byte: u8, pos: u8) -> u8 {
     let mask = 1 << pos;

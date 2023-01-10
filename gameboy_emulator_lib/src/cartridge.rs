@@ -13,12 +13,6 @@ pub struct Cartridge {
 
 impl Memory for Cartridge {
     fn read(&self, address: u16) -> u8 {
-        // println!(
-        //     "bank0 size: {} | bankn size: {}",
-        //     self.bank0.len(),
-        //     self.bankn.len()
-        // );
-        // println!("address: {:#06X}", address);
         match address {
             0x0000..=0x3FFF => self.bank0[address as usize],
             0x4000..=0x7FFF => self.bankn[(address - 0x4000) as usize],
@@ -26,7 +20,7 @@ impl Memory for Cartridge {
         }
     }
 
-    fn write(&self, address: u16, byte: u8) {}
+    fn write(&mut self, address: u16, byte: u8) {}
 }
 
 impl Cartridge {
@@ -41,4 +35,3 @@ impl Cartridge {
         }
     }
 }
-
