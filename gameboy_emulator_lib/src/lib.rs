@@ -5,3 +5,5 @@ pub mod interrupt;
 pub mod io;
 pub mod rom;
 pub mod utils;
+pub mod gameboy;
+pub mod emu;

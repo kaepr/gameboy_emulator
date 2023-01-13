@@ -9,7 +9,7 @@ use self::{
     jump_handlers::{call, jp, jp_hl, jr, ret, reti, rst},
     load16_handlers::{ld as ld16, pop, push},
     load8_handlers::{ld as ld8, ldh},
-    misc_handlers::{di, nop},
+    misc_handlers::{di, ei, nop, stop, halt},
     opcodes::*,
 };
 
@@ -48,10 +48,10 @@ impl Operation {
         match inst {
             Operation::Misc(o) => match o {
                 MiscOp::NOP => nop(cpu),
-                MiscOp::STOP => todo!(),
-                MiscOp::HALT => todo!(),
+                MiscOp::STOP => stop(cpu),
+                MiscOp::HALT => halt(cpu),
                 MiscOp::PREFIX => (),
-                MiscOp::EI => todo!(),
+                MiscOp::EI => ei(cpu),
                 MiscOp::DI => di(cpu),
             },
             Operation::Load8(o) => match o {

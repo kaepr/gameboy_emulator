@@ -130,8 +130,15 @@ pub fn ldh(cpu: &mut CPU, dest: Load8Dest, _src: Load8Src) {
         }
         Load8Dest::A => {
             let d8 = cpu.fetch_byte();
+
             let addr = 0xFF00 + (d8 as u16);
             let byte = cpu.read_byte_bus(addr);
+
+            // if cpu.registers.pc == 0xC350 {
+            //     println!("byte at addr {} {}", byte, addr);
+            //     panic!("stoppp");
+            // }
+
             cpu.registers.a = byte;
         }
         _ => panic!("Invalid enum variant"),

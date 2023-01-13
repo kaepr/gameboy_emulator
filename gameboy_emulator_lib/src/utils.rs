@@ -22,12 +22,12 @@ pub fn word_to_bytes(word: u16) -> (u8, u8) {
     (high, low)
 }
 
-pub fn reset_bit(byte: u8, pos: u8) -> u8 {
+pub fn reset_bit(byte: u8, pos: usize) -> u8 {
     let mask = 1 << pos;
     byte & !mask
 }
 
-pub fn set_bit(byte: u8, pos: u8) -> u8 {
+pub fn set_bit(byte: u8, pos: usize) -> u8 {
     let mask = 1 << pos;
     byte | mask
 }

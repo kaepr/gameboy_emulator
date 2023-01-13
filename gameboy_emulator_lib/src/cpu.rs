@@ -1,6 +1,7 @@
 use crate::{
     bus::{Bus, Memory},
     cartridge::Cartridge,
+    interrupt::Interrupts,
     utils::{word_to_bytes, Opts},
 };
 
@@ -14,25 +15,14 @@ pub struct CPU {
     pub bus: Bus,
     pub cycles: u64,
     pub ime: bool,
-    pub debug_info: String,
     pub opts: Opts,
+    pub halted: bool,
+    pub enable_ime_next_cycle: bool,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Cycles {
     N4 = 4,
-}
-
-#[derive(Copy, Clone, Debug, PartialEq)]
-pub enum ReturnType {
-    Jumped,
-    NotJumped,
-}
-
-pub struct InstructionReturn {
-    pub n_cycles: u64,
-    pub n_bytes: u16,
-    pub return_type: ReturnType,
 }
 
 impl CPU {
@@ -42,21 +32,41 @@ impl CPU {
             cycles: 0,
             bus: Bus::new(cartridge),
             ime: false,
-            debug_info: "".to_string(),
             opts,
+            halted: false,
+            enable_ime_next_cycle: false,
         }
     }
 
     pub fn step(&mut self) {
-        self.execute();
+        Interrupts::process_interrupt_request(self);
+
+        if self.halted && !Interrupts::pending_interrupt(self) {
+            self.tick();
+            return;
+        }
+
+        if Interrupts::pending_interrupt(self) {
+            self.halted = false;
+        }
+
+        if Interrupts::has_interrupt(self) {
+            Interrupts::handle_interrupt(self);
+            self.ime = false;
+            self.halted = false;
+        } else {
+            self.execute();
+        }
     }
 
     pub fn tick(&mut self) {
         self.add_cycles(Cycles::N4);
         self.bus.timer.tick();
-        self.bus.timer.tick();
-        self.bus.timer.tick();
-        self.bus.timer.tick();
+
+        if self.enable_ime_next_cycle {
+            self.ime = true;
+            self.enable_ime_next_cycle = false;
+        }
     }
 
     fn add_cycles(&mut self, n_cycles: Cycles) {
@@ -76,7 +86,7 @@ impl CPU {
         byte
     }
 
-    fn write_byte(&mut self, addr: u16, byte: u8) {
+    pub fn write_byte(&mut self, addr: u16, byte: u8) {
         self.bus.write(addr, byte);
         self.tick();
     }
@@ -118,13 +128,7 @@ impl CPU {
         };
 
         if self.opts.show_serial_output {
-            let b = self.bus.read(0xFF02);
-            if b == 0x81 {
-                let c = self.bus.read(0xFF01);
-                self.debug_info.push(c as char);
-                println!("{}", self.debug_info);
-                self.bus.write(0xFF02, 0);
-            }
+            self.bus.serial.print_serial_data();
         }
 
         Operation::execute(self, inst);
