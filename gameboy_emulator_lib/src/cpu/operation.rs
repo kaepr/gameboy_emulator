@@ -9,7 +9,7 @@ use self::{
     jump_handlers::{call, jp, jp_hl, jr, ret, reti, rst},
     load16_handlers::{ld as ld16, pop, push},
     load8_handlers::{ld as ld8, ldh},
-    misc_handlers::{di, ei, nop, stop, halt},
+    misc_handlers::{di, ei, halt, nop, stop},
     opcodes::*,
 };
 

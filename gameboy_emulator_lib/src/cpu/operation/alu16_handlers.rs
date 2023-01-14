@@ -2,7 +2,7 @@ use super::opcodes::{ALU16Dest, ALU16Src};
 use crate::{
     cpu::{
         registers::{flags::FlagType, Reg16},
-        Cycles, CPU,
+        CPU,
     },
     utils::HalfCarryCheck,
 };

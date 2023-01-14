@@ -1,5 +1,5 @@
 use crate::{
-    cpu::{registers::Reg16, Cycles, CPU},
+    cpu::{registers::Reg16, CPU},
     utils::{le_bytes_to_word, word_to_bytes},
 };
 
