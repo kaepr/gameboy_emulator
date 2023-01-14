@@ -1,31 +1,50 @@
-use gameboy_emulator_lib::{cartridge::Cartridge, cpu::CPU, rom::Rom, utils::Opts};
-
 use clap::Parser;
+use eframe;
+use gameboy_emulator_lib::{cartridge::Cartridge, cpu::CPU, rom::Rom, utils::Opts};
+use tracing_subscriber;
 
-#[derive(Parser, Debug)]
-#[clap(author, version, about)]
-struct Cli {
-    /// Relative path to the Gameboy Rom
-    #[arg(short, long)]
-    path: String,
+mod args;
 
-    /// Show register values
-    #[arg(short, long, required = false, default_value_t = false)]
-    debug: bool,
+#[derive(Default)]
+struct MyEguiApp {}
 
-    /// Show output in the serial register. Useful for blarrgs's test rom
-    #[arg(short, long, required = false, default_value_t = false)]
-    serial: bool,
+impl MyEguiApp {
+    fn new(cc: &eframe::CreationContext<'_>) -> Self {
+        // Customize egui here with cc.egui_ctx.set_fonts and cc.egui_ctx.set_visuals.
+        // Restore app state using cc.storage (requires the "persistence" feature).
+        // Use the cc.gl (a glow::Context) to create graphics shaders and buffers that you can use
+        // for e.g. egui::PaintCallback.
+        Self::default()
+    }
 }
 
-fn main() {
-    let cli = Cli::parse();
+impl eframe::App for MyEguiApp {
+    fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
+        egui::CentralPanel::default().show(ctx, |ui| {
+            ui.heading("Hello World!");
+        });
+    }
+}
 
-    let rom = Rom::new(cli.path.to_string());
+#[cfg(not(target_arch = "wasm32"))]
+fn main() {
+    use args::Args;
+
+    tracing_subscriber::fmt::init();
+    let native_options = eframe::NativeOptions::default();
+    eframe::run_native(
+        "Gameboy Emulator",
+        native_options,
+        Box::new(|cc| Box::new(MyEguiApp::new(cc))),
+    );
+
+    let args = Args::parse();
+
+    let rom = Rom::new(args.path.to_string());
 
     let cart = Cartridge::new(rom.data);
 
-    let opts = Opts::new(cli.debug, cli.serial);
+    let opts = Opts::new(args.debug, args.serial);
 
     let mut cpu = CPU::new(cart, opts);
 

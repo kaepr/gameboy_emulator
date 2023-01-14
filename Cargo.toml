@@ -1,10 +1,14 @@
 [workspace]
-
-members = [
-  "gameboy_emulator",
-  "gameboy_emulator_lib"
-]
-
+members = ["gameboy_emulator", "gameboy_emulator_lib"]
 
 [workspace.dependencies]
-sdl2 = "0.35"
+egui = "0.20.0"
+eframe = { version = "0.20.0", default-features = false, features = [
+  "default_fonts",
+  "glow",
+] }
+serde = { version = "1", featues = ["derive"] }
+clap = { version = "4.0.32", features = ["derive"] }
+
+[profile.release]
+opt-level = 2 # fast and small wasm
