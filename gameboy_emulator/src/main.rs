@@ -1,6 +1,7 @@
 use clap::Parser;
 use eframe;
-use gameboy_emulator_lib::{cartridge::Cartridge, cpu::CPU, rom::Rom, utils::Opts};
+use gameboy_emulator_lib::{cartridge::Cartridge, rom::Rom, utils::Opts};
+
 use tracing_subscriber;
 
 mod args;
@@ -9,13 +10,13 @@ mod args;
 struct MyEguiApp {}
 
 impl MyEguiApp {
-    fn new(cc: &eframe::CreationContext<'_>) -> Self {
+    fn new(_cc: &eframe::CreationContext<'_>) -> Self {
         Self::default()
     }
 }
 
 impl eframe::App for MyEguiApp {
-    fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
+    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading("Hello World!");
         });
@@ -25,14 +26,15 @@ impl eframe::App for MyEguiApp {
 #[cfg(not(target_arch = "wasm32"))]
 fn main() {
     use args::Args;
+    use gameboy_emulator_lib::emu::EmuContext;
 
-    tracing_subscriber::fmt::init();
-    let native_options = eframe::NativeOptions::default();
-    eframe::run_native(
-        "Gameboy Emulator",
-        native_options,
-        Box::new(|cc| Box::new(MyEguiApp::new(cc))),
-    );
+    // tracing_subscriber::fmt::init();
+    // let native_options = eframe::NativeOptions::default();
+    // eframe::run_native(
+    //     "Gameboy Emulator",
+    //     native_options,
+    //     Box::new(|cc| Box::new(MyEguiApp::new(cc))),
+    // );
 
     let args = Args::parse();
 
@@ -42,9 +44,9 @@ fn main() {
 
     let opts = Opts::new(args.debug, args.serial);
 
-    let mut cpu = CPU::new(cart, opts);
+    let mut ctx = EmuContext::new(cart, opts);
 
     loop {
-        cpu.step();
+        ctx.step();
     }
 }

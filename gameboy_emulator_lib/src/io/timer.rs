@@ -1,4 +1,10 @@
-use crate::{bus::Memory, interrupt::Interruptable, utils::BitPosCheck};
+use std::{cell::RefCell, rc::Rc};
+
+use crate::{
+    bus::Memory,
+    interrupt::{InterruptType, Interruptable, Interrupts},
+    utils::BitPosCheck,
+};
 
 pub struct Timer {
     div: u16,
@@ -8,17 +14,7 @@ pub struct Timer {
     prev_result: bool,
     reload_requested: bool,
     reloaded: bool,
-    pub request_interrupt: bool,
-}
-
-impl Interruptable for Timer {
-    fn create_interrut_request(&mut self) {
-        self.request_interrupt = true;
-    }
-
-    fn reset_interrupt_request(&mut self) {
-        self.request_interrupt = false;
-    }
+    interrupts: Rc<RefCell<Interrupts>>,
 }
 
 pub enum ClockFreq {
@@ -64,16 +60,16 @@ impl Memory for Timer {
 }
 
 impl Timer {
-    pub fn new() -> Self {
+    pub fn new(interrupts: Rc<RefCell<Interrupts>>) -> Self {
         Timer {
             div: 0xAB,
             tima: 0x00,
             tma: 0x00,
             tac: 0xF8,
             prev_result: true,
-            request_interrupt: false,
             reload_requested: false,
             reloaded: false,
+            interrupts,
         }
     }
 
@@ -85,7 +81,11 @@ impl Timer {
         if self.reload_requested {
             self.tima = self.tma;
             self.reload_requested = false;
-            self.create_interrut_request();
+            // println!("timer interrupt created");
+            self.interrupts
+                .borrow_mut()
+                .create_interrupt(InterruptType::TIMER);
+
             self.reloaded = true;
         }
 

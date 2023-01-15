@@ -2,8 +2,7 @@ use core::panic;
 
 use crate::{
     cpu::{
-        registers::{flags::FlagType, Reg16},
-        Cycles, CPU,
+        registers::{flags::FlagType, Reg16}, CPU,
     },
     utils::{le_bytes_to_word, word_to_bytes},
 };

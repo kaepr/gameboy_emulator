@@ -1,21 +1,26 @@
-use crate::{bus::Memory, interrupt::Interruptable};
+use std::{cell::RefCell, rc::Rc};
+
+use crate::{
+    bus::Memory,
+    interrupt::{Interruptable, Interrupts},
+};
 
 pub struct Serial {
     output: String,
     data: u8,
     control: u8,
-    request_interrupt: bool,
+    interrupts: Rc<RefCell<Interrupts>>,
 }
 
-impl Interruptable for Serial {
-    fn create_interrut_request(&mut self) {
-        self.request_interrupt = true;
-    }
-
-    fn reset_interrupt_request(&mut self) {
-        self.request_interrupt = false;
-    }
-}
+// impl Interruptable for Serial {
+//     fn create_interrut_request(&mut self) {
+//         self.request_interrupt = true;
+//     }
+//
+//     fn reset_interrupt_request(&mut self) {
+//         self.request_interrupt = false;
+//     }
+// }
 
 impl Memory for Serial {
     fn read(&self, address: u16) -> u8 {
@@ -36,12 +41,12 @@ impl Memory for Serial {
 }
 
 impl Serial {
-    pub fn new() -> Self {
+    pub fn new(interrupts: Rc<RefCell<Interrupts>>) -> Self {
         Serial {
             output: "".to_string(),
             data: 0x00,
             control: 0x7E,
-            request_interrupt: false,
+            interrupts,
         }
     }
 
