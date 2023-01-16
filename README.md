@@ -1,5 +1,7 @@
 # Gameboy Emulator in Rust
 
+Work in progress
+
 ## Instructions
 
 - Control / Miscellaneous

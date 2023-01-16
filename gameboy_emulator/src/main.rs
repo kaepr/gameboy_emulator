@@ -1,7 +1,6 @@
 use clap::Parser;
 use eframe;
 use gameboy_emulator_lib::{cartridge::Cartridge, rom::Rom, utils::Opts};
-
 use tracing_subscriber;
 
 mod args;
@@ -28,13 +27,13 @@ fn main() {
     use args::Args;
     use gameboy_emulator_lib::emu::EmuContext;
 
-    // tracing_subscriber::fmt::init();
-    // let native_options = eframe::NativeOptions::default();
-    // eframe::run_native(
-    //     "Gameboy Emulator",
-    //     native_options,
-    //     Box::new(|cc| Box::new(MyEguiApp::new(cc))),
-    // );
+    tracing_subscriber::fmt::init();
+    let native_options = eframe::NativeOptions::default();
+    eframe::run_native(
+        "Gameboy Emulator",
+        native_options,
+        Box::new(|cc| Box::new(MyEguiApp::new(cc))),
+    );
 
     let args = Args::parse();
 

@@ -2,7 +2,7 @@ use std::{cell::RefCell, rc::Rc};
 
 use crate::{
     bus::Memory,
-    interrupt::{InterruptType, Interruptable, Interrupts},
+    interrupt::{InterruptType, Interrupts},
     utils::BitPosCheck,
 };
 

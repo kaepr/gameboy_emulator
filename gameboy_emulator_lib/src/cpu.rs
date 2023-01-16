@@ -2,9 +2,8 @@ use std::{cell::RefCell, rc::Rc};
 
 use crate::{
     bus::{Bus, Memory},
-    cartridge::Cartridge,
     interrupt::Interrupts,
-    utils::{reset_bit, word_to_bytes, Opts},
+    utils::{reset_bit, word_to_bytes},
 };
 
 use self::{operation::Operation, registers::Registers};
@@ -14,7 +13,7 @@ mod registers;
 
 pub struct CPU {
     pub registers: Registers,
-    pub bus: Rc<RefCell<Bus>>,
+    pub bus: Rc<RefCell<dyn Memory>>,
     pub cycles: u64,
     pub ime: bool,
     pub halted: bool,
@@ -27,7 +26,7 @@ pub enum Cycles {
 }
 
 impl CPU {
-    pub fn new(bus: Rc<RefCell<Bus>>) -> Self {
+    pub fn new(bus: Rc<RefCell<dyn Memory>>) -> Self {
         CPU {
             registers: Registers::new(),
             cycles: 0,
