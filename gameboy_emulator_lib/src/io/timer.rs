@@ -81,7 +81,6 @@ impl Timer {
         if self.reload_requested {
             self.tima = self.tma;
             self.reload_requested = false;
-            // println!("timer interrupt created");
             self.interrupts
                 .borrow_mut()
                 .create_interrupt(InterruptType::TIMER);

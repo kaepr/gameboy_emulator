@@ -4,8 +4,6 @@ use crate::{
     bus::{Bus, Memory},
     cartridge::Cartridge,
     cpu::CPU,
-    interrupt::Interrupts,
-    io::timer::Timer,
     utils::Opts,
 };
 
@@ -44,7 +42,6 @@ impl EmuContext {
             }
             let mut n_cycles = self.cpu.step();
 
-            // println!("n_cycles {}", n_cycles);
             n_cycles /= 4;
 
             for _ in 0..n_cycles {

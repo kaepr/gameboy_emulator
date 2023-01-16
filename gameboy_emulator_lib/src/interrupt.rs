@@ -1,7 +1,6 @@
 use crate::{
     bus::Memory,
-    cpu::CPU,
-    utils::{reset_bit, set_bit, word_to_bytes, BitPosCheck},
+    utils::{reset_bit, set_bit, BitPosCheck},
 };
 
 pub struct Interrupts {

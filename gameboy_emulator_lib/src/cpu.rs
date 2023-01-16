@@ -47,7 +47,7 @@ impl CPU {
     pub fn step(&mut self) -> u64 {
         let cur_cycles = self.cycles;
 
-        if self.halted && self.has_interrupt() {
+        if self.halted && !self.has_interrupt() {
             self.tick();
             return self.cycles - cur_cycles;
         }
