@@ -9,14 +9,14 @@ use crate::{
 pub struct Timer {
     div: u16,
     tima: u8,
+    tima_cycles: u16,
+    tima_period: ClockFreq,
     tma: u8,
     tac: u8,
-    prev_result: bool,
-    reload_requested: bool,
-    reloaded: bool,
     interrupts: Rc<RefCell<Interrupts>>,
 }
 
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub enum ClockFreq {
     C1024 = 1024,
     C16 = 16,
@@ -39,19 +39,12 @@ impl Memory for Timer {
         match address {
             0xFF04 => {
                 self.div = 0;
-                self.update_timer_flags();
             }
             0xFF05 => {
-                if !self.reloaded {
-                    self.tima = byte;
-                    self.reload_requested = false;
-                }
+                self.tima = byte;
             }
             0xFF06 => {
                 self.tma = byte;
-                if self.reloaded {
-                    self.tima = byte;
-                }
             }
             0xFF07 => self.tac = byte,
             _ => panic!("invalid address passed"),
@@ -64,51 +57,42 @@ impl Timer {
         Timer {
             div: 0xAB,
             tima: 0x00,
+            tima_cycles: 0,
+            tima_period: ClockFreq::C1024,
             tma: 0x00,
             tac: 0xF8,
-            prev_result: true,
-            reload_requested: false,
-            reloaded: false,
             interrupts,
         }
     }
 
     pub fn tick(&mut self) {
-        if self.reloaded {
-            self.reloaded = false;
-        }
+        self.div = self.div.wrapping_add(1);
 
-        if self.reload_requested {
-            self.tima = self.tma;
-            self.reload_requested = false;
-            self.interrupts
-                .borrow_mut()
-                .create_interrupt(InterruptType::TIMER);
+        let tac_enabled = self.tac.is_bit_set(2);
 
-            self.reloaded = true;
-        }
+        let period = self.tima_freq();
 
-        self.div = self.div.wrapping_add(4);
-        self.update_timer_flags();
-    }
+        if period != self.tima_period {
+            self.tima_period = period;
+            self.tima_cycles = 0;
+        } else if tac_enabled {
+            self.tima_cycles += 1;
+            let tima_period = self.tima_freq();
 
-    fn update_timer_flags(&mut self) {
-        let div_bit = self.div.is_bit_set(self.bit_pos().into());
-        let tac_bit = self.tac.is_bit_set(2);
-        let cur_result = div_bit & tac_bit;
+            if self.tima_cycles > (tima_period as u16) {
+                let (res, carry) = self.tima.overflowing_add(1);
+                self.tima_cycles = 0;
 
-        if self.prev_result && !cur_result {
-            let (res, carry) = self.tima.overflowing_add(1);
-
-            if carry {
-                self.tima = 0;
-                self.reload_requested = true;
-            } else {
-                self.tima = res;
+                if carry {
+                    self.tima = self.tma;
+                    self.interrupts
+                        .borrow_mut()
+                        .create_interrupt(InterruptType::TIMER);
+                } else {
+                    self.tima = res;
+                }
             }
         }
-
-        self.prev_result = cur_result;
     }
 
     fn bit_pos(&self) -> u16 {

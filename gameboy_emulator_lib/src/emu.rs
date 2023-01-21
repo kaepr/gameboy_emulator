@@ -40,9 +40,7 @@ impl EmuContext {
             if self.opts.show_debug_info {
                 self.print_debug();
             }
-            let mut n_cycles = self.cpu.step();
-
-            n_cycles /= 4;
+            let n_cycles = self.cpu.step();
 
             for _ in 0..n_cycles {
                 self.bus.borrow_mut().tick();

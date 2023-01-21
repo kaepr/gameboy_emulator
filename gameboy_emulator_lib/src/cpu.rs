@@ -126,17 +126,6 @@ impl CPU {
         self.write_byte(addr + 1, hi);
     }
 
-    fn print_debug(&self) {
-        println!(
-            "{} ({:02X} {:02X} {:02X} {:02X})",
-            self.registers,
-            self.bus.borrow().read(self.registers.pc),
-            self.bus.borrow().read(self.registers.pc + 1),
-            self.bus.borrow().read(self.registers.pc + 2),
-            self.bus.borrow().read(self.registers.pc + 3),
-        );
-    }
-
     fn execute(&mut self) {
         let mut opcode = self.fetch_byte();
         let prefixed = Operation::is_prefix(opcode);
