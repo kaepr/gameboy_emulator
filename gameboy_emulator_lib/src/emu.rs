@@ -40,6 +40,7 @@ impl EmuContext {
             if self.opts.show_debug_info {
                 self.print_debug();
             }
+
             let n_cycles = self.cpu.step();
 
             for _ in 0..n_cycles {

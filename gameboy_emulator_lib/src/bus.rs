@@ -6,12 +6,21 @@ use crate::{
     io::{ppu::PPU, serial::Serial, timer::Timer},
 };
 
+use self::ranges::{
+    CART_END, CART_START, INTERRUPT_ENABLE, LCD_END, LCD_START, OAM_END, OAM_START, SERIAL_END,
+    SERIAL_START, TIMER_END, TIMER_START, VRAM_END, VRAM_START, WRAM_END, WRAM_START, WRAM_SIZE, HRAM_SIZE,
+};
+
+pub mod ranges;
+
 pub struct Bus {
     pub cartridge: Cartridge,
     pub timer: Timer,
     pub serial: Serial,
     pub ppu: PPU,
     pub interrupts: Rc<RefCell<Interrupts>>,
+    wram: [u8; WRAM_SIZE],
+    hram: [u8; HRAM_SIZE],
     memory: [u8; 0x10000],
 }
 
@@ -23,20 +32,30 @@ pub trait Memory {
 impl Memory for Bus {
     fn read(&self, address: u16) -> u8 {
         match address {
-            0x0000..=0x7FFF => self.cartridge.read(address),
-            0xFF01..=0xFF02 => self.serial.read(address),
-            0xFF04..=0xFF07 => self.timer.read(address),
-            0xFF0F | 0xFFFF => self.interrupts.borrow().read(address),
+            CART_START..=CART_END => self.cartridge.read(address),
+            WRAM_START..=WRAM_END => self.wram[(address - WRAM_START) as usize],
+            SERIAL_START..=SERIAL_END => self.serial.read(address),
+            TIMER_START..=TIMER_END => self.timer.read(address),
+            VRAM_START..=VRAM_END | LCD_START..=LCD_END | OAM_START..=OAM_END => {
+                self.ppu.read(address)
+            }
+            INTERRUPT_ENABLE | INTERRUPT_ENABLE => self.interrupts.borrow().read(address),
             _ => self.memory[address as usize],
         }
     }
 
     fn write(&mut self, address: u16, byte: u8) {
         match address {
-            0x0000..=0x7FFF => self.cartridge.write(address, byte),
-            0xFF01..=0xFF02 => self.serial.write(address, byte),
-            0xFF04..=0xFF07 => self.timer.write(address, byte),
-            0xFF0F | 0xFFFF => self.interrupts.borrow_mut().write(address, byte),
+            CART_START..=CART_END => self.cartridge.write(address, byte),
+            WRAM_START..=WRAM_END => self.wram[(address - WRAM_START) as usize] = byte,
+            SERIAL_START..=SERIAL_END => self.serial.write(address, byte),
+            TIMER_START..=TIMER_END => self.timer.write(address, byte),
+            VRAM_START..=VRAM_END | LCD_START..=LCD_END | OAM_START..=OAM_END => {
+                self.ppu.write(address, byte)
+            }
+            INTERRUPT_ENABLE | INTERRUPT_ENABLE => {
+                self.interrupts.borrow_mut().write(address, byte)
+            }
             _ => self.memory[address as usize] = byte,
         }
     }
@@ -53,15 +72,18 @@ impl Bus {
 
         Bus {
             cartridge,
-            memory,
             timer: Timer::new(interrupts.clone()),
             serial: Serial::new(interrupts.clone()),
             ppu: PPU::new(interrupts.clone()),
             interrupts,
+            wram: [0; WRAM_SIZE],
+            hram: [0; HRAM_SIZE],
+            memory,
         }
     }
 
     pub fn tick(&mut self) {
         self.timer.tick();
+        self.ppu.tick();
     }
 }

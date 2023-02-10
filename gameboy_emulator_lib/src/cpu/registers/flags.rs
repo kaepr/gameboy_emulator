@@ -83,11 +83,6 @@ impl From<u8> for Flags {
 
 impl fmt::Display for Flags {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        // write!(
-        //     f,
-        //     r#"{}{}{}{}"#,
-        //     self.zero as u8, self.sub as u8, self.half_carry as u8, self.carry as u8
-        // )
         let n: u8 = (*self).into();
         write!(f, r#"{:02X}"#, n)
     }

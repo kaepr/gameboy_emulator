@@ -1,7 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
 use crate::{
-    bus::{Bus, Memory},
+    bus::Memory,
     interrupt::Interrupts,
     utils::{reset_bit, word_to_bytes},
 };
