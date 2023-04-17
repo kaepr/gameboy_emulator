@@ -1,0 +1,20 @@
+layout {
+    tab_template name="base" {
+        children
+        pane size=1 borderless=true {
+            plugin location="zellij:compact-bar"
+        }
+    }
+    base name="nvim" {
+        pane
+    }
+    base name="run" split_direction="vertical" {
+        pane
+        pane cwd="/frontend/web"
+    }
+    base name="git" {
+        pane command="gitui"
+    }
+}
+
+
