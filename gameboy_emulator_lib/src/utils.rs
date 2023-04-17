@@ -32,6 +32,10 @@ pub fn set_bit(byte: u8, pos: usize) -> u8 {
     byte | mask
 }
 
+pub fn is_bit_set(byte: u8, pos: usize) -> bool {
+    byte & (1 << pos) > 0
+}
+
 pub fn swap_nibbles(byte: u8) -> u8 {
     byte.rotate_right(4)
 }

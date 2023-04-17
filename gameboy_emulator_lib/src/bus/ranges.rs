@@ -20,6 +20,7 @@ pub const ECHO_SIZE: usize = (ECHO_END - ECHO_START + 1) as usize;
 pub const OAM_START: u16 = 0xFE00;
 pub const OAM_END: u16 = 0xFE9F;
 pub const OAM_SIZE: usize = (OAM_END - OAM_START + 1) as usize;
+pub const OAM_COUNT: usize = 40;
 
 pub const JOYPAD: u16 = 0xFF00;
 
