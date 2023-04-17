@@ -2,6 +2,8 @@
 
 ## Run Instructions
 
+Blarrg's test roms can be found at [gb-test-roms](https://github.com/retrio/gb-test-roms.git).
+
 ```bash
 
 ```

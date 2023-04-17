@@ -8,9 +8,6 @@ edition = "2021"
 [dependencies]
 clap = { workspace = true }
 gameboy_emulator_lib = { path = "../gameboy_emulator_lib" }
-egui = { workspace = true }
-eframe = { workspace = true }
-
 
 # native:
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
