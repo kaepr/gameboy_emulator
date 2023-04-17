@@ -7,8 +7,9 @@ use crate::{
 };
 
 use self::ranges::{
-    CART_END, CART_START, INTERRUPT_ENABLE, LCD_END, LCD_START, OAM_END, OAM_START, SERIAL_END,
-    SERIAL_START, TIMER_END, TIMER_START, VRAM_END, VRAM_START, WRAM_END, WRAM_START, WRAM_SIZE, HRAM_SIZE,
+    CART_END, CART_START, HRAM_SIZE, INTERRUPT_ENABLE, INTERRUPT_FLAG, LCD_END, LCD_START, OAM_END,
+    OAM_START, SERIAL_END, SERIAL_START, TIMER_END, TIMER_START, VRAM_END, VRAM_START, WRAM_END,
+    WRAM_SIZE, WRAM_START,
 };
 
 pub mod ranges;
@@ -39,7 +40,7 @@ impl Memory for Bus {
             VRAM_START..=VRAM_END | LCD_START..=LCD_END | OAM_START..=OAM_END => {
                 self.ppu.read(address)
             }
-            INTERRUPT_ENABLE | INTERRUPT_ENABLE => self.interrupts.borrow().read(address),
+            INTERRUPT_ENABLE | INTERRUPT_FLAG => self.interrupts.borrow().read(address),
             _ => self.memory[address as usize],
         }
     }
@@ -53,9 +54,7 @@ impl Memory for Bus {
             VRAM_START..=VRAM_END | LCD_START..=LCD_END | OAM_START..=OAM_END => {
                 self.ppu.write(address, byte)
             }
-            INTERRUPT_ENABLE | INTERRUPT_ENABLE => {
-                self.interrupts.borrow_mut().write(address, byte)
-            }
+            INTERRUPT_ENABLE | INTERRUPT_FLAG => self.interrupts.borrow_mut().write(address, byte),
             _ => self.memory[address as usize] = byte,
         }
     }

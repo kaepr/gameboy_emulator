@@ -24,18 +24,18 @@ pub const OAM_SIZE: usize = (OAM_END - OAM_START + 1) as usize;
 pub const JOYPAD: u16 = 0xFF00;
 
 pub const SERIAL_START: u16 = 0xFF01;
-pub const SERIAL_END : u16 = 0xFF02;
+pub const SERIAL_END: u16 = 0xFF02;
 
 pub const TIMER_START: u16 = 0xFF04;
-pub const TIMER_END : u16 = 0xFF07;
+pub const TIMER_END: u16 = 0xFF07;
 
 pub const LCD_START: u16 = 0xFF40;
-pub const LCD_END : u16 = 0xFF4B;
+pub const LCD_END: u16 = 0xFF4B;
 pub const LCD_SIZE: usize = (LCD_END - LCD_START + 1) as usize;
 
 pub const HRAM_START: u16 = 0xFF80;
 pub const HRAM_END: u16 = 0xFFFE;
 pub const HRAM_SIZE: usize = (HRAM_END - HRAM_START + 1) as usize;
 
-pub const INTERRUPT_ENABLE: u16 = 0xFFFF;
 pub const INTERRUPT_FLAG: u16 = 0xFF0F;
+pub const INTERRUPT_ENABLE: u16 = 0xFFFF;
