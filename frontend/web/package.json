@@ -11,6 +11,7 @@
   "license": "MIT",
   "devDependencies": {
     "typescript": "^4.9.5",
+    "unocss": "^0.51.4",
     "vite": "^4.1.1",
     "vite-plugin-solid": "^2.5.0"
   },
