@@ -9,7 +9,7 @@
 ## Tasks
 
 - [x] Pass all CPU instruction tests
-- [] Run using WASM
-- [] Display on browser
-- [] Pass display tests
+- [ ] Run using WASM
+- [ ] Display on browser
+- [ ] Pass display tests
 
