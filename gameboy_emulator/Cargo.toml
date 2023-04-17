@@ -7,6 +7,7 @@ edition = "2021"
 
 [dependencies]
 clap = { workspace = true }
+minifb = "0.24"
 gameboy_emulator_lib = { path = "../gameboy_emulator_lib" }
 
 # native:
