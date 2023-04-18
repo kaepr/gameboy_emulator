@@ -1,5 +1,5 @@
 use clap::Parser;
-use gameboy_emulator_lib::{cartridge::Cartridge, rom::Rom, utils::Opts};
+use gameboy_emulator_lib::{bus::Memory, cartridge::Cartridge, rom::Rom, utils::Opts};
 
 mod args;
 
