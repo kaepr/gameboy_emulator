@@ -24,7 +24,8 @@ pub enum Mode {
 }
 
 pub struct PPU {
-    vram: [u8; VRAM_SIZE],
+    cycles: u64,
+    pub vram: [u8; VRAM_SIZE],
     oam: [OamEntry; 40],
     lcdc: Lcdc,
     /// LCD Y Coordinate
@@ -110,6 +111,7 @@ impl PPU {
         let ly: u8 = 0x90;
 
         PPU {
+            cycles: 0,
             interrupts,
             oam: [OamEntry::new(); OAM_COUNT],
             vram: [0; VRAM_SIZE],
@@ -128,7 +130,9 @@ impl PPU {
         }
     }
 
-    pub fn tick(&mut self) {}
+    pub fn tick(&mut self) {
+        self.cycles += 1;
+    }
 
     fn start_dma_transfer(&mut self, byte: u8) {
         todo!("write dma transfer")
