@@ -106,12 +106,15 @@ impl Memory for PPU {
 
 impl PPU {
     pub fn new(interrupts: Rc<RefCell<Interrupts>>) -> Self {
+        // useful for blarrgs' test
+        let ly: u8 = 0x90;
+
         PPU {
             interrupts,
             oam: [OamEntry::new(); OAM_COUNT],
             vram: [0; VRAM_SIZE],
             lcdc: 0x00.into(),
-            ly: 0x00,
+            ly,
             lyc: 0x00,
             stat: 0x00.into(),
             scy: 0x00,

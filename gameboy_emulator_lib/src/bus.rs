@@ -7,9 +7,9 @@ use crate::{
 };
 
 use self::ranges::{
-    CART_END, CART_START, HRAM_SIZE, INTERRUPT_ENABLE, INTERRUPT_FLAG, LCD_END, LCD_START, OAM_END,
-    OAM_START, SERIAL_END, SERIAL_START, TIMER_END, TIMER_START, VRAM_END, VRAM_START, WRAM_END,
-    WRAM_SIZE, WRAM_START,
+    CART_END, CART_START, HRAM_END, HRAM_SIZE, HRAM_START, INTERRUPT_ENABLE, INTERRUPT_FLAG,
+    LCD_END, LCD_START, OAM_END, OAM_START, SERIAL_END, SERIAL_START, TIMER_END, TIMER_START,
+    VRAM_END, VRAM_START, WRAM_END, WRAM_SIZE, WRAM_START,
 };
 
 pub mod ranges;
@@ -40,6 +40,7 @@ impl Memory for Bus {
             VRAM_START..=VRAM_END | LCD_START..=LCD_END | OAM_START..=OAM_END => {
                 self.ppu.read(address)
             }
+            HRAM_START..=HRAM_END => self.hram[(address - HRAM_START) as usize],
             INTERRUPT_ENABLE | INTERRUPT_FLAG => self.interrupts.borrow().read(address),
             _ => self.memory[address as usize],
         }
@@ -54,6 +55,7 @@ impl Memory for Bus {
             VRAM_START..=VRAM_END | LCD_START..=LCD_END | OAM_START..=OAM_END => {
                 self.ppu.write(address, byte)
             }
+            HRAM_START..=HRAM_END => self.hram[(address - HRAM_START) as usize] = byte,
             INTERRUPT_ENABLE | INTERRUPT_FLAG => self.interrupts.borrow_mut().write(address, byte),
             _ => self.memory[address as usize] = byte,
         }
@@ -62,11 +64,7 @@ impl Memory for Bus {
 
 impl Bus {
     pub fn new(cartridge: Cartridge) -> Self {
-        let mut memory = [0; 0x10000];
-
-        // setting for blarrgs output
-        memory[0xFF44] = 0x90;
-
+        let memory = [0; 0x10000];
         let interrupts = Rc::new(RefCell::new(Interrupts::new()));
 
         Bus {

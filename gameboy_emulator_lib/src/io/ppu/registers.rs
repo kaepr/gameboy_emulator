@@ -159,8 +159,34 @@ impl From<u8> for Palette {
     }
 }
 
+pub enum Color {
+    C0 = 0,
+    C1 = 1,
+    C2 = 2,
+    C3 = 3,
+}
+
 impl Palette {
     pub fn new(byte: u8) -> Self {
         byte.into()
+    }
+
+    pub fn get_color(&self, idx: usize) -> Color {
+        match idx {
+            0 => self.get_val(self.bit_1, self.bit_0),
+            1 => self.get_val(self.bit_3, self.bit_2),
+            2 => self.get_val(self.bit_5, self.bit_4),
+            3 => self.get_val(self.bit_7, self.bit_6),
+            _ => unreachable!("Index should only be 0..3"),
+        }
+    }
+
+    fn get_val(&self, high: bool, low: bool) -> Color {
+        match (high, low) {
+            (true, true) => Color::C3,
+            (true, false) => Color::C2,
+            (false, true) => Color::C1,
+            (false, false) => Color::C0,
+        }
     }
 }
