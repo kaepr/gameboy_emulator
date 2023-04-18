@@ -1,3 +1,5 @@
+pub const CYCLES_1_FRAME: u64 = 69905;
+
 pub struct Opts {
     pub show_debug_info: bool,
     pub show_serial_output: bool,

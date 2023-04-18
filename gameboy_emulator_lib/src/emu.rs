@@ -35,21 +35,21 @@ impl EmuContext {
         );
     }
 
-    pub fn step(&mut self) {
-        loop {
-            if self.opts.show_debug_info {
-                self.print_debug();
-            }
-
-            let n_cycles = self.cpu.step();
-
-            for _ in 0..n_cycles {
-                self.bus.borrow_mut().tick();
-            }
-
-            if self.opts.show_serial_output {
-                self.bus.borrow_mut().serial.print_serial_data();
-            }
+    pub fn step(&mut self) -> u64 {
+        if self.opts.show_debug_info {
+            self.print_debug();
         }
+
+        let n_cycles = self.cpu.step();
+
+        for _ in 0..n_cycles {
+            self.bus.borrow_mut().tick();
+        }
+
+        if self.opts.show_serial_output {
+            self.bus.borrow_mut().serial.print_serial_data();
+        }
+
+        n_cycles
     }
 }
