@@ -1,18 +1,17 @@
 use std::{cell::RefCell, rc::Rc};
 
+mod oam;
 mod registers;
 
 use crate::{
     bus::{
-        ranges::{OAM_COUNT, OAM_END, OAM_SIZE, OAM_START, VRAM_SIZE},
+        ranges::{OAM_COUNT, OAM_END, OAM_START, VRAM_END, VRAM_SIZE, VRAM_START},
         Memory,
     },
     interrupt::Interrupts,
 };
 
 use self::{oam::OamEntry, registers::Lcdc};
-
-pub mod oam;
 
 enum Mode {
     OamScan,
@@ -40,6 +39,7 @@ impl Memory for PPU {
                 let idx = (addr / 4) as usize;
                 self.oam[idx].get_field(field_idx)
             }
+            VRAM_START..=VRAM_END => self.vram[(address - VRAM_START) as usize],
             _ => unreachable!(),
         }
     }
@@ -48,7 +48,6 @@ impl Memory for PPU {
         match address {
             0xFF40 => {
                 self.lcdc = Lcdc::new(byte);
-                // TODO: Write logic here
             }
             OAM_START..=OAM_END => {
                 let addr = address - OAM_START;
@@ -56,6 +55,7 @@ impl Memory for PPU {
                 let idx = (addr / 4) as usize;
                 self.oam[idx].set_field(byte, field_idx);
             }
+            VRAM_START..=VRAM_END => self.vram[(address - VRAM_START) as usize] = byte,
             _ => unreachable!(),
         }
     }

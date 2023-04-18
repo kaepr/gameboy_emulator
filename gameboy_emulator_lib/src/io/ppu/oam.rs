@@ -24,15 +24,17 @@ impl OamEntry {
             1 => self.x_pos,
             2 => self.tile_idx,
             3 => self.flags,
+            _ => panic!("Shouldn't happen"),
         }
     }
 
-    pub fn set_field(&self, byte: u8, field_pos: usize) {
+    pub fn set_field(&mut self, byte: u8, field_pos: usize) {
         match field_pos {
             0 => self.y_pos = byte,
             1 => self.x_pos = byte,
             2 => self.tile_idx = byte,
             3 => self.flags = byte,
+            _ => panic!("Shouldn't happen"),
         }
     }
 }
