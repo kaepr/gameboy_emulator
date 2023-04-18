@@ -20,6 +20,7 @@ pub struct Bus {
     pub serial: Serial,
     pub ppu: PPU,
     pub interrupts: Rc<RefCell<Interrupts>>,
+    start_dma_transfer: bool,
     wram: [u8; WRAM_SIZE],
     hram: [u8; HRAM_SIZE],
     memory: [u8; 0x10000],
@@ -64,7 +65,7 @@ impl Memory for Bus {
 
 impl Bus {
     pub fn new(cartridge: Cartridge) -> Self {
-        let memory = [0; 0x10000];
+        let memory = [0x00; 0x10000];
         let interrupts = Rc::new(RefCell::new(Interrupts::new()));
 
         Bus {
@@ -76,11 +77,27 @@ impl Bus {
             wram: [0; WRAM_SIZE],
             hram: [0; HRAM_SIZE],
             memory,
+            start_dma_transfer: false,
         }
     }
 
     pub fn tick(&mut self) {
         self.timer.tick();
         self.ppu.tick();
+
+        // dma started inside PPU
+        if self.ppu.dma_mode && !self.start_dma_transfer {
+            self.start_dma_transfer = true;
+            let mut src = self.ppu.dma as u16 * 0x100;
+            let mut dest = 0xFE00;
+
+            for _ in 0..160 {
+                self.write(dest, self.read(src));
+                dest += 1;
+                src += 1;
+            }
+        } else if !self.ppu.dma_mode {
+            self.start_dma_transfer = false;
+        }
     }
 }

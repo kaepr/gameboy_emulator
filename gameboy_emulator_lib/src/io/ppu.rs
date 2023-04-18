@@ -25,8 +25,11 @@ pub enum Mode {
 
 pub struct PPU {
     cycles: u64,
+    machine_cycles: u64,
+    pub dma_mode: bool,
+    pub dma_cycles: u64,
     pub vram: [u8; VRAM_SIZE],
-    oam: [OamEntry; 40],
+    pub oam: [OamEntry; 40],
     lcdc: Lcdc,
     /// LCD Y Coordinate
     ly: u8,
@@ -39,7 +42,7 @@ pub struct PPU {
     /// Window positions
     wy: u8,
     wx: u8,
-    dma: u8,
+    pub dma: u8,
     // Background Palette
     bg_palette: Palette,
     /// Object Palette
@@ -70,6 +73,9 @@ impl Memory for PPU {
             0xFF4A => self.wy,
             0xFF4B => self.wx,
             OAM_START..=OAM_END => {
+                if self.dma_mode {
+                    return 0xFF;
+                }
                 let (idx, field_idx) = get_oam_idx(address);
                 self.oam[idx].get_field(field_idx)
             }
@@ -87,7 +93,6 @@ impl Memory for PPU {
             0xFF44 => self.ly = byte,
             0xFF45 => self.lyc = byte,
             0xFF46 => {
-                self.dma = byte;
                 self.start_dma_transfer(byte);
             }
             0xFF47 => self.bg_palette = byte.into(),
@@ -107,34 +112,59 @@ impl Memory for PPU {
 
 impl PPU {
     pub fn new(interrupts: Rc<RefCell<Interrupts>>) -> Self {
-        // useful for blarrgs' test
-        let ly: u8 = 0x90;
+        // useful for blarrgs' test -> 0x94
+        // start up -> 0x91
+        let ly: u8 = 0x91;
 
         PPU {
             cycles: 0,
             interrupts,
             oam: [OamEntry::new(); OAM_COUNT],
             vram: [0; VRAM_SIZE],
-            lcdc: 0x00.into(),
+            lcdc: 0x91.into(),
             ly,
             lyc: 0x00,
-            stat: 0x00.into(),
+            stat: 0x81.into(),
             scy: 0x00,
             scx: 0x00,
             wy: 0x00,
             wx: 0x00,
-            dma: 0x00,
-            bg_palette: 0x00.into(),
+            dma: 0xFF,
+            bg_palette: 0xFC.into(),
             obj_palette_0: 0x00.into(),
             obj_palette_1: 0x00.into(),
+            machine_cycles: 0,
+            dma_mode: false,
+            dma_cycles: 0,
         }
+    }
+
+    fn machine_cycle(&mut self) {
+        if self.dma_mode {
+            self.dma_cycles += 1;
+            self.machine_cycles += 1;
+
+            if self.dma_cycles >= 160 {
+                self.dma_mode = false;
+            }
+
+            return;
+        }
+
+        self.machine_cycles += 1;
     }
 
     pub fn tick(&mut self) {
         self.cycles += 1;
+        if self.cycles == 4 {
+            self.machine_cycle();
+            self.cycles = 0;
+        }
     }
 
     fn start_dma_transfer(&mut self, byte: u8) {
-        todo!("write dma transfer")
+        self.dma_mode = true;
+        self.dma = byte;
+        self.dma_cycles = 0;
     }
 }

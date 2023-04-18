@@ -108,11 +108,9 @@ fn draw_tile(buffer: &mut Vec<u32>, tile_data: Vec<u8>, pos: (usize, usize)) {
     let (x_pos, _) = pos;
     let mut row = pos.1;
 
-    let mut cnt = 0;
     for bytes in tile_data.chunks(2) {
         let mut idx: i32 = 7;
         let mut cur_x: usize = x_pos.into();
-        cnt += 1;
 
         while idx >= 0 {
             let color = get_col(
@@ -121,7 +119,6 @@ fn draw_tile(buffer: &mut Vec<u32>, tile_data: Vec<u8>, pos: (usize, usize)) {
             );
             let pixel_color = color_to_rgb(color);
 
-            // place pixel at correct position in linear array
             buffer[cur_x + 640 * row] = pixel_color;
             cur_x += 1;
             idx -= 1;
@@ -129,8 +126,6 @@ fn draw_tile(buffer: &mut Vec<u32>, tile_data: Vec<u8>, pos: (usize, usize)) {
 
         row += 1;
     }
-
-    println!("draw tile runs for {}", cnt);
 }
 
 fn reset_buffer(buffer: &mut Vec<u32>) {
@@ -151,7 +146,6 @@ fn update_debug_buffer(buffer: &mut Vec<u32>, ctx: &mut EmuContext) {
     let vram_ref = &ctx.bus.borrow().ppu.vram;
 
     for tile_no in 0..384 {
-        println!("tile no: {}", tile_no);
         let tile_data = vram_ref
             .iter()
             .skip(tile_no * 16)
@@ -169,8 +163,6 @@ fn update_debug_buffer(buffer: &mut Vec<u32>, ctx: &mut EmuContext) {
             count = 0;
             row_no += 9;
         }
-
-        println!("row no: {}", row_no);
     }
 }
 
