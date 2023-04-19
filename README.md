@@ -8,7 +8,7 @@ Work in progress
 cargo run -- -p "relative path to rom" 
 ```
 
-## Depdencies
+## Dependencies
 - [rust_minifb](https://github.com/emoon/rust_minifb) Framebuffer for displaying the lcd output
 
 ## Test roms
