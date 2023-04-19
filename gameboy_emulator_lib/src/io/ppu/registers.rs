@@ -69,15 +69,15 @@ pub struct Stat {
     /// Bit 7
     unused: bool,
     /// Bit 6
-    lyc_ly_eq_interrupt: bool,
+    pub lyc_ly_eq_interrupt: bool,
     /// Bit 5
-    oam_interrupt: bool,
+    pub oam_interrupt: bool,
     /// Bit 4
-    vblank_interrupt: bool,
+    pub vblank_interrupt: bool,
     /// Bit 3
-    hblank_interrupt: bool,
+    pub hblank_interrupt: bool,
     /// Bit 2
-    lyc_ly_eq_flag: bool,
+    pub lyc_ly_eq_flag: bool,
     /// Bit 1-0
     /// Mode Flag
     mode_bit_1: bool,
@@ -112,9 +112,50 @@ impl From<u8> for Stat {
     }
 }
 
+pub enum Mode {
+    HBlank = 0,
+    VBlank = 1,
+    OamSearch = 2,
+    LcdTransfer = 3,
+}
+
 impl Stat {
     pub fn new(byte: u8) -> Self {
         byte.into()
+    }
+
+    pub fn set_lyc_ly_eq_flag(&mut self, flag: bool) {
+        self.lyc_ly_eq_flag = flag;
+    }
+
+    pub fn get_mode(&self) -> Mode {
+        match (self.mode_bit_1, self.mode_bit_0) {
+            (true, true) => Mode::LcdTransfer,
+            (true, false) => Mode::OamSearch,
+            (false, true) => Mode::VBlank,
+            (false, false) => Mode::HBlank,
+        }
+    }
+
+    pub fn set_mode(&mut self, mode: Mode) {
+        match mode {
+            Mode::HBlank => {
+                self.mode_bit_1 = false;
+                self.mode_bit_0 = false;
+            }
+            Mode::VBlank => {
+                self.mode_bit_1 = false;
+                self.mode_bit_0 = true;
+            }
+            Mode::OamSearch => {
+                self.mode_bit_1 = true;
+                self.mode_bit_0 = false;
+            }
+            Mode::LcdTransfer => {
+                self.mode_bit_1 = true;
+                self.mode_bit_0 = true;
+            }
+        }
     }
 }
 

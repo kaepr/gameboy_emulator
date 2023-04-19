@@ -10,21 +10,23 @@ use crate::{
     },
     interrupt::Interrupts,
 };
+use crate::interrupt::InterruptType;
 
 use self::{
     oam::OamEntry,
-    registers::{Lcdc, Palette, Stat},
+    registers::{Lcdc, Mode, Palette, Stat},
 };
 
-pub enum Mode {
-    HBlank = 0,
-    VBlank = 1,
-    OamSearch = 2,
-    LcdTransfer = 3,
-}
+pub const VBLANK_LINE_LIMIT: u8 = 144;
+pub const MAX_LINE_LIMIT:u8 = 154;
+
+pub const OAM_TICK_LIMIT:u64 = 80;
+pub const LCD_TRANSFER_TICK_LIMIT:u64 = 172;
+pub const HBLANK_TICK_LIMIT:u64 = 456;
 
 pub struct PPU {
     cycles: u64,
+    ticks: u64,
     machine_cycles: u64,
     pub dma_mode: bool,
     pub dma_cycles: u64,
@@ -113,18 +115,18 @@ impl Memory for PPU {
 impl PPU {
     pub fn new(interrupts: Rc<RefCell<Interrupts>>) -> Self {
         // useful for blarrgs' test -> 0x94
-        // start up -> 0x91
-        let ly: u8 = 0x91;
+        let ly: u8 = 0x00;
 
         PPU {
             cycles: 0,
+            ticks: 0,
             interrupts,
             oam: [OamEntry::new(); OAM_COUNT],
             vram: [0; VRAM_SIZE],
             lcdc: 0x91.into(),
             ly,
             lyc: 0x00,
-            stat: 0x81.into(),
+            stat: 0x85.into(),
             scy: 0x00,
             scx: 0x00,
             wy: 0x00,
@@ -156,9 +158,85 @@ impl PPU {
 
     pub fn tick(&mut self) {
         self.cycles += 1;
+        self.ticks += 1;
+
         if self.cycles == 4 {
             self.machine_cycle();
             self.cycles = 0;
+        }
+
+        let mode = self.stat.get_mode();
+
+        match mode {
+            Mode::HBlank => self.hblank_mode(),
+            Mode::VBlank => self.vblank_mode(),
+            Mode::OamSearch => self.oam_search_mode(),
+            Mode::LcdTransfer => self.lcd_transfer_mode(),
+        }
+    }
+
+    fn inc_ly(&mut self) {
+        self.ly += 1;
+
+        if self.ly == self.lyc {
+            self.stat.set_lyc_ly_eq_flag(true);
+
+            if self.stat.lyc_ly_eq_interrupt {
+                self.interrupts.borrow_mut().create_interrupt(InterruptType::LCDSTAT);
+            }
+        } else {
+            self.stat.set_lyc_ly_eq_flag(false);
+        }
+    }
+
+    fn reset_ly(&mut self) {
+        self.ly = 0;
+    }
+
+    fn hblank_mode(&mut self) {
+        if self.ticks >= HBLANK_TICK_LIMIT {
+            self.inc_ly();
+
+            if self.ly >= VBLANK_LINE_LIMIT {
+                // means 1 frame has finished processing
+                self.stat.set_mode(Mode::VBlank);
+
+                self.interrupts.borrow_mut().create_interrupt(InterruptType::VBLANK);
+
+                if self.stat.vblank_interrupt {
+                    self.interrupts.borrow_mut().create_interrupt(InterruptType::LCDSTAT);
+                }
+            } else {
+                self.stat.set_mode(Mode::OamSearch);
+            }
+
+            self.ticks = 0;
+        }
+    }
+
+    fn vblank_mode(&mut self) {
+        if self.ticks >= HBLANK_TICK_LIMIT {
+            self.inc_ly();
+
+            if self.ly >= MAX_LINE_LIMIT {
+               // all lines in a frame rendered
+                self.stat.set_mode(Mode::OamSearch);
+                self.reset_ly();
+            }
+
+            self.ticks = 0;
+        }
+    }
+
+    fn oam_search_mode(&mut self) {
+        if self.ticks >= OAM_TICK_LIMIT as u64 {
+            self.stat.set_mode(Mode::LcdTransfer);
+        }
+    }
+
+    fn lcd_transfer_mode(&mut self) {
+        if self.ticks >= (LCD_TRANSFER_TICK_LIMIT + OAM_TICK_LIMIT){
+            self.stat.set_mode(Mode::HBlank);
         }
     }
 
