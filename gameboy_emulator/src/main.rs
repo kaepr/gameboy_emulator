@@ -103,7 +103,6 @@ fn get_col(fst: bool, snd: bool) -> Color {
     }
 }
 
-/// Draws tile with 1 pixel margin
 fn draw_tile(buffer: &mut Vec<u32>, tile_data: Vec<u8>, pos: (usize, usize)) {
     let (x_pos, _) = pos;
     let mut row = pos.1;
@@ -150,7 +149,7 @@ fn update_debug_buffer(buffer: &mut Vec<u32>, ctx: &mut EmuContext) {
             .iter()
             .skip(tile_no * 16)
             .take(16)
-            .map(|x| *x)
+            .copied()
             .collect::<Vec<_>>();
 
         draw_tile(buffer, tile_data, (x_start, row_no));

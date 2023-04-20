@@ -85,6 +85,10 @@ impl Bus {
         self.timer.tick();
         self.ppu.tick();
 
+        self.dma_transfer();
+    }
+
+    fn dma_transfer(&mut self) {
         // dma started inside PPU
         if self.ppu.dma_mode && !self.start_dma_transfer {
             self.start_dma_transfer = true;

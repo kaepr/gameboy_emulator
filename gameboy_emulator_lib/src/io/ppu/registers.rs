@@ -4,25 +4,25 @@ use crate::utils::is_bit_set;
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub struct Lcdc {
     /// Bit 7
-    enable_lcd: bool,
+    pub enable_lcd: bool,
     /// Window Tile Map Area Bit 6
     /// 0 = 9800-9BFF , 1 = 9C00 - 9FFF
-    window_tile_map_area: bool,
+    pub window_tile_map_area: bool,
     /// Bit 5
-    window_enable: bool,
+    pub window_enable: bool,
     /// Bit 4
     /// 0 = 8800-97FF, 1 = 8000-8FFF
-    bg_tile_data_area: bool,
+    pub bg_tile_data_area: bool,
     /// Bit 3
     /// 0 = 9800-9BFF, 1 = 9C00-9FFF
-    bg_tile_map_area: bool,
+    pub bg_tile_map_area: bool,
     /// Bit 2
     /// 0 = 8x8, 1 = 8x16
-    obj_size: bool,
+    pub obj_size: bool,
     /// Bit 1
-    obj_enable: bool,
+    pub obj_enable: bool,
     /// Bit 0
-    bg_priority: bool,
+    pub bg_priority: bool,
 }
 
 impl From<Lcdc> for u8 {
@@ -112,6 +112,7 @@ impl From<u8> for Stat {
     }
 }
 
+#[derive(Clone, Copy, PartialEq, Debug)]
 pub enum Mode {
     HBlank = 0,
     VBlank = 1,

@@ -1,6 +1,6 @@
 /// CPU Freq / 60
 /// This many CPU cycles need to occur before a frame gets sent for rendering
-pub const CYCLES_1_FRAME: u64 = 69905;
+pub const CYCLES_1_FRAME: u64 = 70224;
 
 pub struct Opts {
     pub show_debug_info: bool,
