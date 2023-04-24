@@ -8,5 +8,5 @@ zellij:
     zellij -l layout.kdl
 
 dev:
-    cd frontend/web && npm run dev
+    cd frontend && npm run dev
 

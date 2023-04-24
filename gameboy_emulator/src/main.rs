@@ -9,40 +9,45 @@ use gameboy_emulator_lib::{
 
 mod args;
 
+const SCREEN_WIDTH: usize = 160;
+const SCREEN_HEIGHT: usize = 144;
+const DEBUG_WINDOW_WIDTH: usize = 160;
+const DEBUG_WINDOW_HEIGHT: usize = 240;
+
 #[cfg(not(target_arch = "wasm32"))]
 fn main() {
     use args::Args;
-    use gameboy_emulator_lib::{emu::EmuContext, utils::CYCLES_1_FRAME};
+    use gameboy_emulator_lib::utils::CYCLES_1_FRAME;
     use minifb::{Key, Scale, ScaleMode, Window, WindowOptions};
 
-    const WIDTH: usize = 640;
-    const HEIGHT: usize = 360;
-
-    let mut main_buffer: Vec<u32> = vec![0; WIDTH * HEIGHT];
-    let mut debug_buffer: Vec<u32> = vec![0; WIDTH * HEIGHT];
+    let mut main_buffer: Vec<u32> = vec![0; SCREEN_WIDTH * SCREEN_HEIGHT];
+    let mut debug_buffer: Vec<u32> = vec![0; DEBUG_WINDOW_WIDTH * DEBUG_WINDOW_HEIGHT];
 
     let custom_window = WindowOptions {
         borderless: false,
         transparency: false,
         title: true,
         resize: false,
-        scale: Scale::X2,
+        scale: Scale::X4,
         scale_mode: ScaleMode::Stretch,
         topmost: false,
         none: false,
     };
 
-    let mut window =
-        Window::new("gbemu", WIDTH, HEIGHT, WindowOptions::default()).unwrap_or_else(|e| {
+    let mut window = Window::new("gbemu", SCREEN_WIDTH, SCREEN_HEIGHT, custom_window)
+        .unwrap_or_else(|e| {
             panic!("{}", e);
         });
 
-    // window.limit_update_rate(Some(std::time::Duration::from_micros(16600)));
-
-    let mut debug_window =
-        Window::new("debug gbemu", WIDTH, HEIGHT, custom_window).unwrap_or_else(|e| {
-            panic!("{}", e);
-        });
+    let mut debug_window = Window::new(
+        "debug gbemu",
+        DEBUG_WINDOW_WIDTH,
+        DEBUG_WINDOW_HEIGHT,
+        custom_window,
+    )
+    .unwrap_or_else(|e| {
+        panic!("{}", e);
+    });
 
     let args = Args::parse();
 
@@ -64,18 +69,15 @@ fn main() {
             }
         }
 
-        for i in main_buffer.iter_mut() {
-            *i = 123124;
-        }
-
+        update_screen(&mut main_buffer, &mut ctx);
         update_debug_buffer(&mut debug_buffer, &mut ctx);
 
         window
-            .update_with_buffer(&main_buffer, WIDTH, HEIGHT)
+            .update_with_buffer(&main_buffer, SCREEN_WIDTH, SCREEN_HEIGHT)
             .unwrap();
 
         debug_window
-            .update_with_buffer(&debug_buffer, WIDTH, HEIGHT)
+            .update_with_buffer(&debug_buffer, DEBUG_WINDOW_WIDTH, DEBUG_WINDOW_HEIGHT)
             .unwrap();
     }
 }
@@ -91,6 +93,21 @@ fn color_to_rgb(color: Color) -> u32 {
         Color::C1 => from_u8_rgb(169, 169, 169),
         Color::C2 => from_u8_rgb(84, 84, 84),
         Color::C3 => from_u8_rgb(0, 0, 0),
+    }
+}
+
+// fn color_to_rgb(color: Color) -> u32 {
+//     match color {
+//         Color::C0 => from_u8_rgb(15, 56, 15),
+//         Color::C1 => from_u8_rgb(48, 98, 48),
+//         Color::C2 => from_u8_rgb(139, 172, 15),
+//         Color::C3 => from_u8_rgb(155, 188, 15),
+//     }
+// }
+
+fn update_screen(buffer: &mut Vec<u32>, ctx: &mut EmuContext) {
+    for (idx, pixel) in ctx.bus.borrow_mut().ppu.buffer.iter().enumerate() {
+        buffer[idx] = color_to_rgb(pixel.get_color());
     }
 }
 
@@ -118,7 +135,7 @@ fn draw_tile(buffer: &mut Vec<u32>, tile_data: Vec<u8>, pos: (usize, usize)) {
             );
             let pixel_color = color_to_rgb(color);
 
-            buffer[cur_x + 640 * row] = pixel_color;
+            buffer[cur_x + DEBUG_WINDOW_WIDTH * row] = pixel_color;
             cur_x += 1;
             idx -= 1;
         }
@@ -164,5 +181,3 @@ fn update_debug_buffer(buffer: &mut Vec<u32>, ctx: &mut EmuContext) {
         }
     }
 }
-
-fn update_main_buffer(buffer: &mut Vec<u32>, ctx: &mut EmuContext) {}

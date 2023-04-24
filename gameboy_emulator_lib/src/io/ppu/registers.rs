@@ -4,24 +4,37 @@ use crate::utils::is_bit_set;
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub struct Lcdc {
     /// Bit 7
+    /// Controls whether lcd is on and the ppu is active
+    /// 0 -> full access to vram, oam etc
+    /// Sreen disabled means another color ( the lowest shade )
+    /// Re enabling this flag means that PPU will start to work
+    /// but screen will stay blank during the first frame
     pub enable_lcd: bool,
     /// Window Tile Map Area Bit 6
+    /// Which tilemap the window uses
     /// 0 = 9800-9BFF , 1 = 9C00 - 9FFF
     pub window_tile_map_area: bool,
     /// Bit 5
+    /// Decides whether the window is enabled or not
     pub window_enable: bool,
     /// Bit 4
-    /// 0 = 8800-97FF, 1 = 8000-8FFF
+    /// Controls which addressing mode that background and window use
     pub bg_tile_data_area: bool,
     /// Bit 3
+    /// Which tilemap the background uses
     /// 0 = 9800-9BFF, 1 = 9C00-9FFF
     pub bg_tile_map_area: bool,
     /// Bit 2
+    /// Defines sprite size
     /// 0 = 8x8, 1 = 8x16
     pub obj_size: bool,
     /// Bit 1
+    /// Decides whether sprites are displayed or not
     pub obj_enable: bool,
     /// Bit 0
+    /// 0 -> both background and window become blank
+    /// ignores window enable bit
+    /// only sprites displayed in such case ( if sprites are enabled that it is )
     pub bg_priority: bool,
 }
 
@@ -69,6 +82,8 @@ pub struct Stat {
     /// Bit 7
     unused: bool,
     /// Bit 6
+    /// If this is enabled, and lyc = ly
+    /// then interrupt occurs
     pub lyc_ly_eq_interrupt: bool,
     /// Bit 5
     pub oam_interrupt: bool,
@@ -77,6 +92,7 @@ pub struct Stat {
     /// Bit 3
     pub hblank_interrupt: bool,
     /// Bit 2
+    /// Enabled if ly == lyc
     pub lyc_ly_eq_flag: bool,
     /// Bit 1-0
     /// Mode Flag
@@ -161,6 +177,7 @@ impl Stat {
 }
 
 /// Palette
+/// Array of colors
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub struct Palette {
     bit_7: bool,
@@ -201,6 +218,7 @@ impl From<u8> for Palette {
     }
 }
 
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Color {
     C0 = 0,
     C1 = 1,

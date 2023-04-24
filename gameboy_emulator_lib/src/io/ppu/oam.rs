@@ -1,11 +1,32 @@
 use crate::bus::Memory;
 
+/// OamEntry
+/// Data for each individual sprite
 #[derive(Copy, PartialEq, Debug, Clone)]
 pub struct OamEntry {
-    y_pos: u8,
-    x_pos: u8,
-    tile_idx: u8,
-    flags: u8,
+    /// Sprite's vertical position on screen + 16
+    /// y_pos = 0 hides the the sprite
+    pub y_pos: u8,
+    /// Sprite's horizontal position on screen + 8
+    /// x_pos = 0 hides the the sprite
+    pub x_pos: u8,
+    /// tile idx which is used to fetch tile data from vram
+    /// In 8x8 mode just one fetch is enough
+    /// In 8x16 mode, every two 2 tiles form a sprite
+    /// byte specifies the top index of the sprite
+    /// LSB of the idx is ignored.
+    ///  ---
+    /// | x | top part of sprite -> NN & 0xFE
+    ///  ---
+    /// | y | bottom part of sprite -> NN | 0x01
+    ///  ---
+    pub tile_idx: u8,
+    /// b7: background and window over object ( 0 = no, 1 = yes )
+    /// b6: y flip
+    /// b5: x flip
+    /// b4: palette number
+    /// b3-b0: unused for original gameboy
+    pub flags: u8,
 }
 
 impl OamEntry {
