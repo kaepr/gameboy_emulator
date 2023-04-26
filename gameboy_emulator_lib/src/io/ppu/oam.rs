@@ -1,20 +1,22 @@
-use crate::bus::Memory;
-
 /// OamEntry
 /// Data for each individual sprite
 #[derive(Copy, PartialEq, Debug, Clone)]
 pub struct OamEntry {
     /// Sprite's vertical position on screen + 16
+    ///
     /// y_pos = 0 hides the the sprite
     pub y_pos: u8,
     /// Sprite's horizontal position on screen + 8
+    ///
     /// x_pos = 0 hides the the sprite
     pub x_pos: u8,
     /// tile idx which is used to fetch tile data from vram
     /// In 8x8 mode just one fetch is enough
+    ///
     /// In 8x16 mode, every two 2 tiles form a sprite
     /// byte specifies the top index of the sprite
     /// LSB of the idx is ignored.
+    ///
     ///  ---
     /// | x | top part of sprite -> NN & 0xFE
     ///  ---

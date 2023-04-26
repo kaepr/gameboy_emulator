@@ -5,6 +5,7 @@ pub mod oam;
 pub mod registers;
 
 use crate::interrupt::InterruptType;
+use crate::utils::BitPosCheck;
 use crate::{
     bus::{
         ranges::{OAM_COUNT, OAM_END, OAM_START, VRAM_END, VRAM_SIZE, VRAM_START},
@@ -29,8 +30,9 @@ pub const HBLANK_TICK_LIMIT: u64 = 456;
 pub const SCREEN_WIDTH: usize = 160;
 pub const SCREEN_HEIGHT: usize = 144;
 
-/// PPU
+/// # PPU
 /// https://gbdev.io/pandocs/Rendering.html
+///
 /// PPU manipulates Tiles, which are 8x8 squares
 /// Each Tile assigns a color id to each pixel ( 0 - 3 )
 /// This color changes depending on whether its in background or window
@@ -51,6 +53,14 @@ pub const SCREEN_HEIGHT: usize = 144;
 /// ### Sprites ( Objects )
 /// Used for objects that move separate from the background. NPCs, players etc.
 /// 8x8 or 8x16 ( depending on the flag ), can be rendered anywhere.
+///
+/// To write to one pixel ( for window / background )
+/// - Figure out window or background
+/// - Find tilemap
+/// - Find tile using byte from tilemap as index onto vram
+/// - Palette
+/// - Write color to buffer
+///
 pub struct PPU {
     cycles: u64,
     ticks: u64,
@@ -360,19 +370,93 @@ impl PPU {
         self.dma_cycles = 0;
     }
 
-    fn render_background_line(&self) {
-        let bg_map_addr = match self.lcdc.bg_tile_map_area {
+    #[inline(always)]
+    fn is_window(&mut self, x: u8) -> bool {
+        self.lcdc.window_enable && x >= self.wx.wrapping_sub(7) && self.ly >= self.wy
+    }
+
+    fn render_background_line(&mut self) {
+        for x_coor in 0..(SCREEN_WIDTH as u8) {
+            let (tile_low, tile_high) = if self.is_window(x_coor) {
+                self.write_window_pixel(x_coor)
+            } else {
+                self.write_background_pixel(x_coor)
+            };
+
+            // subtracted from 7 as bit 7 points to first position
+            let pixel_pos = 7 - x_coor % 8;
+
+            let (low, high) = (
+                tile_low.is_bit_set(pixel_pos.into()),
+                tile_high.is_bit_set(pixel_pos.into()),
+            );
+
+            let color_id = Color::get_color_index(low, high);
+            let color = self.bg_palette.get_color(color_id);
+            let pixel = Pixel::new(color);
+            self.write_pixel(x_coor, self.ly, pixel);
+        }
+    }
+
+    fn write_window_pixel(&mut self, x_coor: u8) -> (u8, u8) {
+        let tilemap = match self.lcdc.window_tile_map_area {
             true => 0x9C00 - VRAM_START,
             false => 0x9800 - VRAM_START,
         };
 
-        let window_map_addr = match self.lcdc.window_tile_map_area {
+        let x_offset = x_coor.wrapping_sub(self.wx).wrapping_add(7);
+        let y_offset = self.ly.wrapping_sub(self.wy);
+        let offset = self.get_tile_offset_from_map(x_offset, y_offset, tilemap);
+        let tile_address = self.get_tile_address(offset);
+        (
+            self.vram[tile_address as usize],
+            self.vram[tile_address.wrapping_add(1) as usize],
+        )
+    }
+
+    fn write_background_pixel(&mut self, x_coor: u8) -> (u8, u8) {
+        let tilemap = match self.lcdc.bg_tile_map_area {
             true => 0x9C00 - VRAM_START,
             false => 0x9800 - VRAM_START,
         };
 
-        for x_pixel in 0..160 {}
+        let x_offset = x_coor.wrapping_add(self.scx);
+        let y_offset = self.ly.wrapping_add(self.scy);
+        let offset = self.get_tile_offset_from_map(x_offset, y_offset, tilemap);
+        let tile_address = self.get_tile_address(offset);
+        (
+            self.vram[tile_address as usize],
+            self.vram[tile_address.wrapping_add(1) as usize],
+        )
+    }
+
+    /// tilemaps are 32 x 32 bytes array
+    /// given parameters are pixel offsets
+    /// thus must be divided by 8 to first get tile offsets
+    /// and then can be used to index into vram
+    fn get_tile_offset_from_map(&self, x_offset: u8, y_offset: u8, tilemap: u16) -> u8 {
+        let tile_x = (x_offset as u16) / 8;
+        let tile_y = (y_offset as u16 / 8) * 32;
+        let index = tilemap as usize + tile_x as usize + tile_y as usize;
+        self.vram[index]
+    }
+
+    fn get_tile_address(&self, offset: u8) -> u16 {
+        match self.lcdc.bg_tile_data_area {
+            true => offset as u16 * 16,
+            false => {
+                // interpret it a possible negative number first
+                // then multiply by 16
+                let signed_offset = ((offset as i8) as i16).wrapping_mul(16);
+                (0x9000 - VRAM_START).wrapping_add(signed_offset as u16)
+            }
+        }
     }
 
     fn render_sprite_line(&self) {}
+
+    fn write_pixel(&mut self, x: u8, y: u8, pixel: Pixel) {
+        let index = x as usize + (y as usize * SCREEN_WIDTH);
+        self.buffer[index] = pixel;
+    }
 }

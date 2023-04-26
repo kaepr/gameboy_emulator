@@ -3,35 +3,38 @@ use crate::utils::is_bit_set;
 /// Lcd Control Register
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub struct Lcdc {
-    /// Bit 7
+    /// ### Bit 7
     /// Controls whether lcd is on and the ppu is active
     /// 0 -> full access to vram, oam etc
     /// Sreen disabled means another color ( the lowest shade )
     /// Re enabling this flag means that PPU will start to work
     /// but screen will stay blank during the first frame
     pub enable_lcd: bool,
-    /// Window Tile Map Area Bit 6
+    /// ### Window Tile Map Area Bit 6
     /// Which tilemap the window uses
-    /// 0 = 9800-9BFF , 1 = 9C00 - 9FFF
+    /// - 0 = 9800-9BFF
+    /// - 1 = 9C00 - 9FFF
     pub window_tile_map_area: bool,
-    /// Bit 5
+    /// ### Bit 5
     /// Decides whether the window is enabled or not
     pub window_enable: bool,
-    /// Bit 4
+    /// ### Bit 4
     /// Controls which addressing mode that background and window use
     pub bg_tile_data_area: bool,
-    /// Bit 3
+    /// ### Bit 3
     /// Which tilemap the background uses
-    /// 0 = 9800-9BFF, 1 = 9C00-9FFF
+    /// - 0 = 9800-9BFF
+    /// - 1 = 9C00-9FFF
     pub bg_tile_map_area: bool,
-    /// Bit 2
+    /// ### Bit 2
     /// Defines sprite size
-    /// 0 = 8x8, 1 = 8x16
+    /// - 0 = 8x8
+    /// - 1 = 8x16
     pub obj_size: bool,
-    /// Bit 1
+    /// ### Bit 1
     /// Decides whether sprites are displayed or not
     pub obj_enable: bool,
-    /// Bit 0
+    /// ### Bit 0
     /// 0 -> both background and window become blank
     /// ignores window enable bit
     /// only sprites displayed in such case ( if sprites are enabled that it is )
@@ -224,6 +227,17 @@ pub enum Color {
     C1 = 1,
     C2 = 2,
     C3 = 3,
+}
+
+impl Color {
+    pub fn get_color_index(low: bool, high: bool) -> usize {
+        match (low, high) {
+            (true, true) => 3,
+            (true, false) => 2,
+            (false, true) => 1,
+            (false, false) => 0,
+        }
+    }
 }
 
 impl Palette {
