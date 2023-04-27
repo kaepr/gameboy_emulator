@@ -339,7 +339,7 @@ impl PPU {
     }
 
     fn oam_search_mode(&mut self) {
-        if self.ticks >= OAM_TICK_LIMIT as u64 {
+        if self.ticks >= OAM_TICK_LIMIT {
             self.clear_active_sprites();
             self.load_active_sprites();
             self.stat.set_mode(Mode::LcdTransfer);
@@ -390,7 +390,7 @@ impl PPU {
         self.active_sprites.sort_by_key(|sprite| sprite.x_pos);
 
         let current_line = self.ly;
-        let height = match self.lcdc.obj_size {
+        let height: u8 = match self.lcdc.obj_size {
             true => 16,
             false => 8,
         };
@@ -401,25 +401,28 @@ impl PPU {
             let y_flip = sprite.y_flipped();
             let x_flip = sprite.x_flipped();
             let palette = match sprite.get_palette_number() {
-                0 => self.obj_palette_0,
-                1 => self.obj_palette_1,
-                _ => unreachable!(),
+                false => self.obj_palette_0,
+                true => self.obj_palette_1,
             };
 
             // sprite's coordinates
-            // TODO: convert them to i16 later ?
             let x_pos = sprite.x_pos.wrapping_sub(8);
             let y_pos = sprite.y_pos.wrapping_sub(16);
 
-            // points to the base tile data being used
-            let base_tile_address = sprite.tile_idx as usize * 16;
-
             // find exact line based on current line number and y flip
             let line_no = if y_flip {
-                ((y_pos as i16 + height as i16) - (current_line as i16)) + 1
+                height
+                    .wrapping_sub(current_line)
+                    .wrapping_add(y_pos)
+                    .wrapping_sub(1)
             } else {
-                (current_line as i16) - y_pos as i16
+                current_line.wrapping_sub(y_pos)
             };
+
+            let tile_idx = sprite.tile_idx;
+
+            // points to the base tile data being used
+            let base_tile_address = tile_idx as usize * 16;
 
             // use the correct byte for tile data based on the line number
             // each line takes up 2 bytes
@@ -478,7 +481,76 @@ impl PPU {
         (x_pos as usize) < SCREEN_WIDTH
     }
 
+    fn render_window_pixel(&mut self, x_coor: u8) {
+        let (tile_offset, x, y) = self.get_window_map_offset(x_coor);
+
+        // base address of the tile to be used
+        let base_tile_address = self.get_tile_address(tile_offset);
+
+        // which line to render
+        let line_no = (y % 8) * 2;
+
+        // each pixel line takes up 2 bytes
+        let tile_address = base_tile_address as usize + line_no as usize;
+
+        let tile_low = self.vram[tile_address];
+        let tile_high = self.vram[tile_address + 1];
+        let x_bit_pos = 7 - (x % 8);
+
+        let (low, high) = (
+            tile_low.is_bit_set(x_bit_pos as usize),
+            tile_high.is_bit_set(x_bit_pos as usize),
+        );
+
+        let palette_index = Palette::palette_index(high, low);
+        self.set_background_priority(x_coor as usize, palette_index);
+        let color = self.bg_palette.get_color(palette_index);
+        let pixel = Pixel::new(color);
+        self.write_pixel(x_coor, self.ly, pixel);
+    }
+
+    fn set_background_priority(&mut self, x: usize, palette_index: usize) {
+        if palette_index == 0 {
+            self.background_priority[x] = true;
+        }
+    }
+
+    fn render_background_pixel(&mut self, x_coor: u8) {
+        let (tile_offset, x, y) = self.get_background_map_offset(x_coor);
+
+        let base_tile_address = self.get_tile_address(tile_offset);
+        let line_no = (y % 8) * 2;
+
+        // each pixel line takes up 2 bytes
+        let tile_address = base_tile_address as usize + (line_no as usize);
+
+        let tile_low = self.vram[tile_address];
+        let tile_high = self.vram[tile_address + 1];
+        let x_bit_pos = 7 - (x % 8);
+
+        let (low, high) = (
+            tile_low.is_bit_set(x_bit_pos as usize),
+            tile_high.is_bit_set(x_bit_pos as usize),
+        );
+
+        let palette_index = Palette::palette_index(high, low);
+        self.set_background_priority(x_coor as usize, palette_index);
+        let color = self.bg_palette.get_color(palette_index);
+        let pixel = Pixel::new(color);
+        self.write_pixel(x_coor, self.ly, pixel);
+    }
+
+    fn reset_line(&mut self) {
+        for x in 0..(SCREEN_WIDTH as u8) {
+            let pixel = Pixel::new(Color::C0);
+            self.background_priority[x as usize] = false;
+            self.write_pixel(x, self.ly, pixel);
+        }
+    }
+
     fn render_line(&mut self) {
+        self.reset_line();
+
         for x_coor in 0..(SCREEN_WIDTH as u8) {
             if !self.lcdc.bg_priority {
                 let pixel = Pixel::new(Color::C0);
@@ -486,39 +558,15 @@ impl PPU {
                 continue;
             }
 
-            // get the tile offset from respective tilemap
-            let tile_offset = if self.is_window(x_coor) {
-                self.get_window_map_offset(x_coor)
+            if self.is_window(x_coor) {
+                self.render_window_pixel(x_coor);
             } else {
-                self.get_background_map_offset(x_coor)
+                self.render_background_pixel(x_coor);
             };
-
-            // points to the base tile address
-            // needs to be offset by the actual line
-            let base_tile_address = self.get_tile_address(tile_offset);
-
-            let line_no = self.ly % 8;
-
-            // each pixel line takes up 2 bytes
-            let tile_address = base_tile_address as usize + (line_no as usize * 2);
-
-            let tile_low = self.vram[tile_address];
-            let tile_high = self.vram[tile_address + 1];
-            let x_bit_pos = 7 - (x_coor % 8);
-
-            let (low, high) = (
-                tile_low.is_bit_set(x_bit_pos as usize),
-                tile_high.is_bit_set(x_bit_pos as usize),
-            );
-
-            let color_id = Color::get_color_id(high, low);
-            let color = self.bg_palette.get_color(color_id);
-            let pixel = Pixel::new(color);
-            self.write_pixel(x_coor, self.ly, pixel);
         }
     }
 
-    fn get_window_map_offset(&mut self, x_coor: u8) -> u8 {
+    fn get_window_map_offset(&mut self, x_coor: u8) -> (u8, u8, u8) {
         let tilemap = match self.lcdc.window_tile_map_area {
             true => 0x9C00 - VRAM_START,
             false => 0x9800 - VRAM_START,
@@ -526,10 +574,14 @@ impl PPU {
 
         let x_offset = x_coor.wrapping_sub(self.wx).wrapping_sub(7);
         let y_offset = self.ly.wrapping_sub(self.wy);
-        self.get_tile_offset_from_map(x_offset, y_offset, tilemap)
+        (
+            self.get_tile_offset_from_map(x_offset, y_offset, tilemap),
+            x_offset,
+            y_offset,
+        )
     }
 
-    fn get_background_map_offset(&mut self, x_coor: u8) -> u8 {
+    fn get_background_map_offset(&mut self, x_coor: u8) -> (u8, u8, u8) {
         let tilemap = match self.lcdc.bg_tile_map_area {
             true => 0x9C00 - VRAM_START,
             false => 0x9800 - VRAM_START,
@@ -537,7 +589,11 @@ impl PPU {
 
         let x_offset = x_coor.wrapping_add(self.scx);
         let y_offset = self.ly.wrapping_add(self.scy);
-        self.get_tile_offset_from_map(x_offset, y_offset, tilemap)
+        (
+            self.get_tile_offset_from_map(x_offset, y_offset, tilemap),
+            x_offset,
+            y_offset,
+        )
     }
 
     /// tilemaps are 32 x 32 bytes array
