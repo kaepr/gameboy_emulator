@@ -437,7 +437,7 @@ impl PPU {
 
                 // bit 7 of tile -> points to first pixel
                 // thus if is flipped, take 7 - px value
-                let pixel_x = if x_flip { 7 - px } else { px };
+                let pixel_x = if !x_flip { 7 - px } else { px };
 
                 let (low, high) = (
                     tile_low.is_bit_set(pixel_x.into()),
