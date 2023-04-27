@@ -49,11 +49,8 @@ impl OamEntry {
         self.flags.is_bit_set(5)
     }
 
-    pub fn get_palette_number(&self) -> usize {
-        match self.flags.is_bit_set(4) {
-            true => 1,
-            false => 0,
-        }
+    pub fn get_palette_number(&self) -> bool {
+        self.flags.is_bit_set(4)
     }
 
     pub fn get_field(&self, field_pos: usize) -> u8 {

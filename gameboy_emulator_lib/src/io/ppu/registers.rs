@@ -229,20 +229,18 @@ pub enum Color {
     C3 = 3,
 }
 
-impl Color {
-    pub fn get_color_id(high: bool, low: bool) -> usize {
+impl Palette {
+    pub fn new(byte: u8) -> Self {
+        byte.into()
+    }
+
+    pub fn palette_index(high: bool, low: bool) -> usize {
         match (high, low) {
             (true, true) => 3,
             (true, false) => 2,
             (false, true) => 1,
             (false, false) => 0,
         }
-    }
-}
-
-impl Palette {
-    pub fn new(byte: u8) -> Self {
-        byte.into()
     }
 
     pub fn get_color(&self, idx: usize) -> Color {

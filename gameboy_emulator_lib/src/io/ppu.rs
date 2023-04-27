@@ -112,6 +112,7 @@ pub struct PPU {
     obj_palette_0: Palette,
     obj_palette_1: Palette,
     interrupts: Rc<RefCell<Interrupts>>,
+    background_priority: [bool; SCREEN_WIDTH],
     pub buffer: [Pixel; SCREEN_WIDTH * SCREEN_HEIGHT],
 }
 
@@ -212,6 +213,7 @@ impl PPU {
             dma_cycles: 0,
             buffer: [Pixel::default(); SCREEN_WIDTH * SCREEN_HEIGHT],
             active_sprites: vec![],
+            background_priority: [false; SCREEN_WIDTH],
         }
     }
 
@@ -432,9 +434,9 @@ impl PPU {
 
             // render the pixel line
             for px in 0..8 {
-                let x_coor = x_pos + px;
+                let target = x_pos + px;
 
-                if !self.in_inside_viewport(x_coor) {
+                if !self.in_inside_viewport(target) {
                     continue;
                 }
 
@@ -447,21 +449,17 @@ impl PPU {
                     tile_high.is_bit_set(pixel_x.into()),
                 );
 
-                let color_id = Color::get_color_id(high, low);
-                let color = palette.get_color(color_id);
-
-                if color != Color::C0 {
+                let palette_index = Palette::palette_index(high, low);
+                if palette_index != 0 {
+                    let color = palette.get_color(palette_index);
                     let pixel = Pixel::new(color);
 
                     if sprite.bg_priority() {
-                        // only draw on top of white pixels in the background
-                        let cur_pixel = self.get_pixel(x_pos + px, current_line);
-
-                        if cur_pixel.is_lightest_color() {
-                            pixel_data.push((x_pos + px, current_line, pixel));
+                        if self.background_priority[target as usize] {
+                            pixel_data.push((target, current_line, pixel));
                         }
                     } else {
-                        pixel_data.push((x_pos + px, current_line, pixel));
+                        pixel_data.push((target, current_line, pixel));
                     }
                 }
             }
