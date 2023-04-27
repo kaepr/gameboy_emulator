@@ -351,7 +351,7 @@ impl PPU {
             return;
         }
 
-        self.render_background_line();
+        self.render_line();
         self.render_sprite_line();
     }
 
@@ -478,35 +478,47 @@ impl PPU {
         (x_pos as usize) < SCREEN_WIDTH
     }
 
-    fn render_background_line(&mut self) {
+    fn render_line(&mut self) {
         for x_coor in 0..(SCREEN_WIDTH as u8) {
             if !self.lcdc.bg_priority {
                 let pixel = Pixel::new(Color::C0);
                 self.write_pixel(x_coor, self.ly, pixel);
-            } else {
-                let (tile_low, tile_high) = if self.is_window(x_coor) {
-                    self.write_window_pixel(x_coor)
-                } else {
-                    self.write_background_pixel(x_coor)
-                };
-
-                // subtracted from 7 as bit 7 points to first position
-                let pixel_pos = 7 - (x_coor % 8);
-
-                let (low, high) = (
-                    tile_low.is_bit_set(pixel_pos.into()),
-                    tile_high.is_bit_set(pixel_pos.into()),
-                );
-
-                let color_id = Color::get_color_index(low, high);
-                let color = self.bg_palette.get_color(color_id);
-                let pixel = Pixel::new(color);
-                self.write_pixel(x_coor, self.ly, pixel);
+                continue;
             }
+
+            // get the tile offset from respective tilemap
+            let tile_offset = if self.is_window(x_coor) {
+                self.get_window_map_offset(x_coor)
+            } else {
+                self.get_background_map_offset(x_coor)
+            };
+
+            // points to the base tile address
+            // needs to be offset by the actual line
+            let base_tile_address = self.get_tile_address(tile_offset);
+
+            let line_no = self.ly % 8;
+
+            // each pixel line takes up 2 bytes
+            let tile_address = base_tile_address as usize + (line_no as usize * 2);
+
+            let tile_low = self.vram[tile_address];
+            let tile_high = self.vram[tile_address + 1];
+            let x_bit_pos = 7 - (x_coor % 8);
+
+            let (low, high) = (
+                tile_low.is_bit_set(x_bit_pos as usize),
+                tile_high.is_bit_set(x_bit_pos as usize),
+            );
+
+            let color_id = Color::get_color_id(high, low);
+            let color = self.bg_palette.get_color(color_id);
+            let pixel = Pixel::new(color);
+            self.write_pixel(x_coor, self.ly, pixel);
         }
     }
 
-    fn write_window_pixel(&mut self, x_coor: u8) -> (u8, u8) {
+    fn get_window_map_offset(&mut self, x_coor: u8) -> u8 {
         let tilemap = match self.lcdc.window_tile_map_area {
             true => 0x9C00 - VRAM_START,
             false => 0x9800 - VRAM_START,
@@ -514,15 +526,10 @@ impl PPU {
 
         let x_offset = x_coor.wrapping_sub(self.wx).wrapping_sub(7);
         let y_offset = self.ly.wrapping_sub(self.wy);
-        let offset = self.get_tile_offset_from_map(x_offset, y_offset, tilemap);
-        let tile_address = self.get_tile_address(offset);
-        (
-            self.vram[tile_address as usize],
-            self.vram[tile_address.wrapping_add(1) as usize],
-        )
+        self.get_tile_offset_from_map(x_offset, y_offset, tilemap)
     }
 
-    fn write_background_pixel(&mut self, x_coor: u8) -> (u8, u8) {
+    fn get_background_map_offset(&mut self, x_coor: u8) -> u8 {
         let tilemap = match self.lcdc.bg_tile_map_area {
             true => 0x9C00 - VRAM_START,
             false => 0x9800 - VRAM_START,
@@ -530,12 +537,7 @@ impl PPU {
 
         let x_offset = x_coor.wrapping_add(self.scx);
         let y_offset = self.ly.wrapping_add(self.scy);
-        let offset = self.get_tile_offset_from_map(x_offset, y_offset, tilemap);
-        let tile_address = self.get_tile_address(offset);
-        (
-            self.vram[tile_address as usize],
-            self.vram[tile_address.wrapping_add(1) as usize],
-        )
+        self.get_tile_offset_from_map(x_offset, y_offset, tilemap)
     }
 
     /// tilemaps are 32 x 32 bytes array
@@ -557,7 +559,7 @@ impl PPU {
             false => {
                 // interpret it a possible negative number first
                 // then multiply by 16
-                let signed_offset = ((offset as i8) as i16).wrapping_mul(16);
+                let signed_offset = (offset as i8 as i16).wrapping_mul(16);
                 (0x9000 - VRAM_START).wrapping_add(signed_offset as u16)
             }
         }
