@@ -444,7 +444,7 @@ impl PPU {
                     tile_high.is_bit_set(pixel_x.into()),
                 );
 
-                let color_id = Color::get_color_index(low, high);
+                let color_id = Color::get_color_id(high, low);
                 let color = palette.get_color(color_id);
 
                 if color != Color::C0 {

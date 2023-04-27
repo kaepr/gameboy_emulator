@@ -230,8 +230,8 @@ pub enum Color {
 }
 
 impl Color {
-    pub fn get_color_index(low: bool, high: bool) -> usize {
-        match (low, high) {
+    pub fn get_color_id(high: bool, low: bool) -> usize {
+        match (high, low) {
             (true, true) => 3,
             (true, false) => 2,
             (false, true) => 1,
