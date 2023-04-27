@@ -67,9 +67,13 @@ pub struct PPU {
     machine_cycles: u64,
     pub dma_mode: bool,
     pub dma_cycles: u64,
-    /// Tile data stored inside vram. Each tile takes 16 bytes of data.
-    /// Thus total fo 384 different tiles. ( 128 of those are shared between sprites and background ).
+    /// Tile data stored inside vram.
+    /// Tile represents 8x8 pixels
+    /// 2 bytes makes up a single line of data
+    /// Thus each tile takes 16 bytes of data.
     /// Each tile contains 8x8 pixels and color depth of 4. Each pixel gives has a color id
+    ///
+    /// There are a total of 384 different tiles. ( 128 of those are shared between sprites and background ).
     ///
     /// Vram also contains 2 32x32 tilemaps
     /// Any of these tilemaps can be used to display background or the window
@@ -317,19 +321,18 @@ impl PPU {
     }
 
     fn load_active_sprites(&mut self) {
+        let height = match self.lcdc.obj_size {
+            true => 16,
+            false => 8,
+        };
+        let cur_line = self.ly;
+
         self.active_sprites = self
             .oam
             .into_iter()
             .filter(|sprite| {
-                let height = match self.lcdc.obj_size {
-                    true => 16,
-                    false => 8,
-                };
-
-                let cur_line = self.ly as i16;
-                let y_pos = (sprite.y_pos as i16) - 16;
-
-                cur_line >= y_pos && cur_line < y_pos + height
+                let y_pos = sprite.y_pos.wrapping_sub(16);
+                cur_line >= y_pos && cur_line < (y_pos + height)
             })
             .take(10)
             .collect();
@@ -344,10 +347,11 @@ impl PPU {
     }
 
     fn render_line_to_buffer(&mut self) {
-        // render line
-        self.render_background_line();
+        if !self.lcdc.is_lcd_enabled() {
+            return;
+        }
 
-        // render sprite line
+        self.render_background_line();
         self.render_sprite_line();
     }
 
@@ -375,8 +379,96 @@ impl PPU {
         self.lcdc.window_enable && x >= self.wx.wrapping_sub(7) && self.ly >= self.wy
     }
 
+    fn render_sprite_line(&mut self) {
+        if !self.lcdc.obj_enable {
+            return;
+        }
+
+        // active sprites sorted by their x coordinate
+        // otherwise by their index
+        // stable sort, hence just sorting by x pos is enough
+        self.active_sprites.sort_by_key(|sprite| sprite.x_pos);
+
+        let current_line = self.ly;
+        let height = match self.lcdc.obj_size {
+            true => 16,
+            false => 8,
+        };
+
+        let mut pixel_data = Vec::new();
+
+        for sprite in self.active_sprites.iter().rev() {
+            let y_flip = sprite.y_flipped();
+            let x_flip = sprite.x_flipped();
+            let palette = match sprite.get_palette_number() {
+                0 => self.obj_palette_0,
+                1 => self.obj_palette_1,
+                _ => unreachable!(),
+            };
+
+            // sprite's coordinates
+            // TODO: convert them to i16 later ?
+            let x_pos = sprite.x_pos.wrapping_sub(8);
+            let y_pos = sprite.y_pos.wrapping_sub(16);
+
+            // points to the base tile data being used
+            let base_tile_address = sprite.tile_idx as usize * 16;
+
+            // find exact line based on current line number and y flip
+            let line_no = if y_flip {
+                ((y_pos as i16 + height as i16) - (current_line as i16)) + 1
+            } else {
+                (current_line as i16) - y_pos as i16
+            };
+
+            // use the correct byte for tile data based on the line number
+            // each line takes up 2 bytes
+            let tile_address = base_tile_address + (line_no as usize * 2);
+            let tile_low = self.vram[tile_address];
+            let tile_high = self.vram[tile_address + 1];
+
+            // render the pixel line
+            for px in 0..8 {
+                let x_coor = x_pos + px;
+
+                if !self.in_inside_viewport(x_coor) {
+                    continue;
+                }
+
+                // bit 7 of tile -> points to first pixel
+                // thus if is flipped, take 7 - px value
+                let pixel_x = if x_flip { 7 - px } else { px };
+
+                let (low, high) = (
+                    tile_low.is_bit_set(pixel_x.into()),
+                    tile_high.is_bit_set(pixel_x.into()),
+                );
+
+                let color_id = Color::get_color_index(low, high);
+                let color = palette.get_color(color_id);
+
+                // TODO: Display sprite after priority check
+
+                let pixel = Pixel::new(color);
+                pixel_data.push((x_pos + px, current_line, pixel));
+            }
+        }
+
+        pixel_data.iter().for_each(|px| {
+            self.write_pixel(px.0, px.1, px.2);
+        });
+    }
+
+    fn in_inside_viewport(&self, x_pos: u8) -> bool {
+        (x_pos as usize) < SCREEN_WIDTH
+    }
+
     fn render_background_line(&mut self) {
         for x_coor in 0..(SCREEN_WIDTH as u8) {
+            if !self.lcdc.bg_priority {
+                continue;
+            }
+
             let (tile_low, tile_high) = if self.is_window(x_coor) {
                 self.write_window_pixel(x_coor)
             } else {
@@ -431,13 +523,15 @@ impl PPU {
     }
 
     /// tilemaps are 32 x 32 bytes array
+    /// tilemaps contain one byte index of teh tile to be displayed
+    /// one tile has data for 8x8 pixels
     /// given parameters are pixel offsets
     /// thus must be divided by 8 to first get tile offsets
     /// and then can be used to index into vram
     fn get_tile_offset_from_map(&self, x_offset: u8, y_offset: u8, tilemap: u16) -> u8 {
-        let tile_x = (x_offset as u16) / 8;
-        let tile_y = (y_offset as u16 / 8) * 32;
-        let index = tilemap as usize + tile_x as usize + tile_y as usize;
+        let tile_x = (x_offset as usize) / 8;
+        let tile_y = (y_offset as usize / 8) * 32;
+        let index = tilemap as usize + tile_x + tile_y;
         self.vram[index]
     }
 
@@ -452,8 +546,6 @@ impl PPU {
             }
         }
     }
-
-    fn render_sprite_line(&self) {}
 
     fn write_pixel(&mut self, x: u8, y: u8, pixel: Pixel) {
         let index = x as usize + (y as usize * SCREEN_WIDTH);
