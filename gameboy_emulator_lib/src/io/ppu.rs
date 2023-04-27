@@ -447,16 +447,31 @@ impl PPU {
                 let color_id = Color::get_color_index(low, high);
                 let color = palette.get_color(color_id);
 
-                // TODO: Display sprite after priority check
+                if color != Color::C0 {
+                    let pixel = Pixel::new(color);
 
-                let pixel = Pixel::new(color);
-                pixel_data.push((x_pos + px, current_line, pixel));
+                    if sprite.bg_priority() {
+                        // only draw on top of white pixels in the background
+                        let cur_pixel = self.get_pixel(x_pos + px, current_line);
+
+                        if cur_pixel.is_lightest_color() {
+                            pixel_data.push((x_pos + px, current_line, pixel));
+                        }
+                    } else {
+                        pixel_data.push((x_pos + px, current_line, pixel));
+                    }
+                }
             }
         }
 
         pixel_data.iter().for_each(|px| {
             self.write_pixel(px.0, px.1, px.2);
         });
+    }
+
+    fn get_pixel(&self, x: u8, y: u8) -> Pixel {
+        let index = x as usize + (y as usize * SCREEN_WIDTH);
+        self.buffer[index]
     }
 
     fn in_inside_viewport(&self, x_pos: u8) -> bool {
@@ -466,27 +481,28 @@ impl PPU {
     fn render_background_line(&mut self) {
         for x_coor in 0..(SCREEN_WIDTH as u8) {
             if !self.lcdc.bg_priority {
-                continue;
-            }
-
-            let (tile_low, tile_high) = if self.is_window(x_coor) {
-                self.write_window_pixel(x_coor)
+                let pixel = Pixel::new(Color::C0);
+                self.write_pixel(x_coor, self.ly, pixel);
             } else {
-                self.write_background_pixel(x_coor)
-            };
+                let (tile_low, tile_high) = if self.is_window(x_coor) {
+                    self.write_window_pixel(x_coor)
+                } else {
+                    self.write_background_pixel(x_coor)
+                };
 
-            // subtracted from 7 as bit 7 points to first position
-            let pixel_pos = 7 - x_coor % 8;
+                // subtracted from 7 as bit 7 points to first position
+                let pixel_pos = 7 - (x_coor % 8);
 
-            let (low, high) = (
-                tile_low.is_bit_set(pixel_pos.into()),
-                tile_high.is_bit_set(pixel_pos.into()),
-            );
+                let (low, high) = (
+                    tile_low.is_bit_set(pixel_pos.into()),
+                    tile_high.is_bit_set(pixel_pos.into()),
+                );
 
-            let color_id = Color::get_color_index(low, high);
-            let color = self.bg_palette.get_color(color_id);
-            let pixel = Pixel::new(color);
-            self.write_pixel(x_coor, self.ly, pixel);
+                let color_id = Color::get_color_index(low, high);
+                let color = self.bg_palette.get_color(color_id);
+                let pixel = Pixel::new(color);
+                self.write_pixel(x_coor, self.ly, pixel);
+            }
         }
     }
 
@@ -496,7 +512,7 @@ impl PPU {
             false => 0x9800 - VRAM_START,
         };
 
-        let x_offset = x_coor.wrapping_sub(self.wx).wrapping_add(7);
+        let x_offset = x_coor.wrapping_sub(self.wx).wrapping_sub(7);
         let y_offset = self.ly.wrapping_sub(self.wy);
         let offset = self.get_tile_offset_from_map(x_offset, y_offset, tilemap);
         let tile_address = self.get_tile_address(offset);

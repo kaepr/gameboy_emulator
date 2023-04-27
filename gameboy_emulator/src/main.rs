@@ -90,8 +90,8 @@ fn from_u8_rgb(r: u8, g: u8, b: u8) -> u32 {
 fn color_to_rgb(color: Color) -> u32 {
     match color {
         Color::C0 => from_u8_rgb(255, 255, 255),
-        Color::C1 => from_u8_rgb(169, 169, 169),
-        Color::C2 => from_u8_rgb(84, 84, 84),
+        Color::C1 => from_u8_rgb(170, 170, 170),
+        Color::C2 => from_u8_rgb(85, 85, 85),
         Color::C3 => from_u8_rgb(0, 0, 0),
     }
 }

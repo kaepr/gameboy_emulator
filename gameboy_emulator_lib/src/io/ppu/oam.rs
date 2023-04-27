@@ -1,6 +1,6 @@
 use crate::utils::BitPosCheck;
 
-/// OamEntry
+/// ### OamEntry
 /// Data for each individual sprite
 #[derive(Copy, PartialEq, Debug, Clone)]
 pub struct OamEntry {
@@ -18,12 +18,6 @@ pub struct OamEntry {
     /// In 8x16 mode, every two 2 tiles form a sprite
     /// byte specifies the top index of the sprite
     /// LSB of the idx is ignored.
-    ///
-    ///  ---
-    /// | x | top part of sprite -> NN & 0xFE
-    ///  ---
-    /// | y | bottom part of sprite -> NN | 0x01
-    ///  ---
     pub tile_idx: u8,
     /// - bit 7: background and window over object ( 0 = no, 1 = yes )
     /// - bit 6: y flip

@@ -21,6 +21,10 @@ impl Pixel {
     pub fn get_color(&self) -> Color {
         self.color
     }
+
+    pub fn is_lightest_color(&self) -> bool {
+        self.color == Color::C0
+    }
 }
 
 pub enum FetcherState {
