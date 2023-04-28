@@ -297,6 +297,12 @@ impl PPU {
         }
     }
 
+    fn inc_wy(&mut self) {}
+
+    fn reset_wy(&mut self) {
+        self.wy = 0;
+    }
+
     fn vblank_mode(&mut self) {
         if self.ticks >= HBLANK_TICK_LIMIT {
             self.inc_ly();
@@ -570,8 +576,17 @@ impl PPU {
             false => 0x9800 - VRAM_START,
         };
 
-        let x_offset = x_coor.wrapping_sub(self.wx).wrapping_sub(7);
+        // gets the real position of the window's x coordinate 
+        // wx = 7 places the window at left most of the screen
+        let window_x = self.wx.wrapping_sub(7);
+        
+        let mut x_offset = x_coor.wrapping_add(self.scx);
         let y_offset = self.ly.wrapping_sub(self.wy);
+
+        if x_offset >= window_x {
+            x_offset = x_coor - window_x;
+        }
+
         (
             self.get_tile_offset_from_map(x_offset, y_offset, tilemap),
             x_offset,
