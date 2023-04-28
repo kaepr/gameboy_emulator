@@ -95,17 +95,6 @@ impl Timer {
         }
     }
 
-    fn bit_pos(&self) -> u16 {
-        let pattern = self.tac & 0b00000011;
-        match pattern {
-            0 => 9,
-            1 => 3,
-            2 => 5,
-            3 => 7,
-            _ => panic!("invalid bit pattern"),
-        }
-    }
-
     fn tima_freq(&self) -> ClockFreq {
         let pattern = self.tac & 0b00000011;
         match pattern {

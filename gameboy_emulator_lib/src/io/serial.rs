@@ -2,7 +2,7 @@ use std::{cell::RefCell, rc::Rc};
 
 use crate::{
     bus::Memory,
-    interrupt::{Interruptable, Interrupts},
+    interrupt::Interrupts,
 };
 
 pub struct Serial {
@@ -11,16 +11,6 @@ pub struct Serial {
     control: u8,
     interrupts: Rc<RefCell<Interrupts>>,
 }
-
-// impl Interruptable for Serial {
-//     fn create_interrut_request(&mut self) {
-//         self.request_interrupt = true;
-//     }
-//
-//     fn reset_interrupt_request(&mut self) {
-//         self.request_interrupt = false;
-//     }
-// }
 
 impl Memory for Serial {
     fn read(&self, address: u16) -> u8 {

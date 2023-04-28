@@ -41,9 +41,6 @@ pub enum InterruptType {
 }
 
 impl Interrupts {
-    const INTERRUPT_ENABLE_ADDRESS: u16 = 0xFFFF;
-    const INTERRUPT_FLAG_ADDRESS: u16 = 0xFF0F;
-
     pub fn new() -> Self {
         Interrupts {
             enable: 0x00,

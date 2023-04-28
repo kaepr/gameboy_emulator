@@ -602,6 +602,7 @@ impl PPU {
 
         let x_offset = x_coor.wrapping_add(self.scx);
         let y_offset = self.ly.wrapping_add(self.scy);
+
         (
             self.get_tile_offset_from_map(x_offset, y_offset, tilemap),
             x_offset,
