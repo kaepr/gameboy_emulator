@@ -127,6 +127,20 @@ impl BitPosCheck for u16 {
     }
 }
 
+pub trait BitPosSet {
+    type Item;
+
+    fn set_bit(&self, pos: usize) -> Self::Item;
+}
+
+impl BitPosSet for u8 {
+    type Item = u8;
+
+    fn set_bit(&self, pos: usize) -> Self::Item {
+        self | (1 << pos)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::utils::BitPosCheck;

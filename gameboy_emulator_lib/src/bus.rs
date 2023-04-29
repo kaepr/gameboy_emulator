@@ -3,13 +3,13 @@ use std::{cell::RefCell, rc::Rc};
 use crate::{
     cartridge::Cartridge,
     interrupt::Interrupts,
-    io::{ppu::PPU, serial::Serial, timer::Timer},
+    io::{joypad::Joypad, ppu::PPU, serial::Serial, timer::Timer},
 };
 
 use self::ranges::{
     CART_END, CART_START, HRAM_END, HRAM_SIZE, HRAM_START, INTERRUPT_ENABLE, INTERRUPT_FLAG,
-    LCD_END, LCD_START, OAM_END, OAM_START, SERIAL_END, SERIAL_START, TIMER_END, TIMER_START,
-    VRAM_END, VRAM_START, WRAM_END, WRAM_SIZE, WRAM_START,
+    JOYPAD, LCD_END, LCD_START, OAM_END, OAM_START, SERIAL_END, SERIAL_START, TIMER_END,
+    TIMER_START, VRAM_END, VRAM_START, WRAM_END, WRAM_SIZE, WRAM_START,
 };
 
 pub mod ranges;
@@ -19,6 +19,7 @@ pub struct Bus {
     pub timer: Timer,
     pub serial: Serial,
     pub ppu: PPU,
+    pub joypad: Joypad,
     pub interrupts: Rc<RefCell<Interrupts>>,
     start_dma_transfer: bool,
     wram: [u8; WRAM_SIZE],
@@ -36,6 +37,7 @@ impl Memory for Bus {
         match address {
             CART_START..=CART_END => self.cartridge.read(address),
             WRAM_START..=WRAM_END => self.wram[(address - WRAM_START) as usize],
+            JOYPAD => self.joypad.read(address),
             SERIAL_START..=SERIAL_END => self.serial.read(address),
             TIMER_START..=TIMER_END => self.timer.read(address),
             VRAM_START..=VRAM_END | LCD_START..=LCD_END | OAM_START..=OAM_END => {
@@ -51,6 +53,7 @@ impl Memory for Bus {
         match address {
             CART_START..=CART_END => self.cartridge.write(address, byte),
             WRAM_START..=WRAM_END => self.wram[(address - WRAM_START) as usize] = byte,
+            JOYPAD => self.joypad.write(address, byte),
             SERIAL_START..=SERIAL_END => self.serial.write(address, byte),
             TIMER_START..=TIMER_END => self.timer.write(address, byte),
             VRAM_START..=VRAM_END | LCD_START..=LCD_END | OAM_START..=OAM_END => {
@@ -73,6 +76,7 @@ impl Bus {
             timer: Timer::new(interrupts.clone()),
             serial: Serial::new(interrupts.clone()),
             ppu: PPU::new(interrupts.clone()),
+            joypad: Joypad::new(interrupts.clone()),
             interrupts,
             wram: [0; WRAM_SIZE],
             hram: [0; HRAM_SIZE],

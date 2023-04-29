@@ -17,7 +17,7 @@ const DEBUG_WINDOW_HEIGHT: usize = 240;
 #[cfg(not(target_arch = "wasm32"))]
 fn main() {
     use args::Args;
-    use gameboy_emulator_lib::utils::CYCLES_1_FRAME;
+    use gameboy_emulator_lib::{io::joypad::JoypadInput, utils::CYCLES_1_FRAME};
     use minifb::{Key, Scale, ScaleMode, Window, WindowOptions};
 
     let mut main_buffer: Vec<u32> = vec![0; SCREEN_WIDTH * SCREEN_HEIGHT];
@@ -39,15 +39,15 @@ fn main() {
             panic!("{}", e);
         });
 
-    let mut debug_window = Window::new(
-        "debug gbemu",
-        DEBUG_WINDOW_WIDTH,
-        DEBUG_WINDOW_HEIGHT,
-        custom_window,
-    )
-    .unwrap_or_else(|e| {
-        panic!("{}", e);
-    });
+    // let mut debug_window = Window::new(
+    //     "debug gbemu",
+    //     DEBUG_WINDOW_WIDTH,
+    //     DEBUG_WINDOW_HEIGHT,
+    //     custom_window,
+    // )
+    // .unwrap_or_else(|e| {
+    //     panic!("{}", e);
+    // });
 
     let args = Args::parse();
 
@@ -59,10 +59,60 @@ fn main() {
 
     let mut ctx = EmuContext::new(cart, opts);
 
-    while window.is_open() && !window.is_key_down(Key::Escape) && debug_window.is_open() {
+    // while window.is_open() && !window.is_key_down(Key::Escape) && debug_window.is_open() {
+    while window.is_open() && !window.is_key_down(Key::Escape) {
         let mut cycles_elapsed = 0;
+
         loop {
             cycles_elapsed += ctx.step();
+
+            if window.is_key_pressed(Key::W, minifb::KeyRepeat::Yes) {
+                ctx.bus.borrow_mut().joypad.key_down(JoypadInput::Up);
+            } else {
+                ctx.bus.borrow_mut().joypad.key_up(JoypadInput::Up);
+            }
+
+            if window.is_key_pressed(Key::A, minifb::KeyRepeat::Yes) {
+                ctx.bus.borrow_mut().joypad.key_down(JoypadInput::Left);
+            } else {
+                ctx.bus.borrow_mut().joypad.key_up(JoypadInput::Left);
+            }
+
+            if window.is_key_pressed(Key::S, minifb::KeyRepeat::Yes) {
+                ctx.bus.borrow_mut().joypad.key_down(JoypadInput::Down);
+            } else {
+                ctx.bus.borrow_mut().joypad.key_up(JoypadInput::Down);
+            }
+
+            if window.is_key_pressed(Key::D, minifb::KeyRepeat::Yes) {
+                ctx.bus.borrow_mut().joypad.key_down(JoypadInput::Right);
+            } else {
+                ctx.bus.borrow_mut().joypad.key_up(JoypadInput::Right);
+            }
+
+            if window.is_key_pressed(Key::J, minifb::KeyRepeat::Yes) {
+                ctx.bus.borrow_mut().joypad.key_down(JoypadInput::A);
+            } else {
+                ctx.bus.borrow_mut().joypad.key_up(JoypadInput::A);
+            }
+
+            if window.is_key_pressed(Key::K, minifb::KeyRepeat::Yes) {
+                ctx.bus.borrow_mut().joypad.key_down(JoypadInput::B);
+            } else {
+                ctx.bus.borrow_mut().joypad.key_up(JoypadInput::B);
+            }
+
+            if window.is_key_pressed(Key::U, minifb::KeyRepeat::Yes) {
+                ctx.bus.borrow_mut().joypad.key_down(JoypadInput::Select);
+            } else {
+                ctx.bus.borrow_mut().joypad.key_up(JoypadInput::Select);
+            }
+
+            if window.is_key_pressed(Key::I, minifb::KeyRepeat::Yes) {
+                ctx.bus.borrow_mut().joypad.key_down(JoypadInput::Start);
+            } else {
+                ctx.bus.borrow_mut().joypad.key_up(JoypadInput::Start);
+            }
 
             if cycles_elapsed > CYCLES_1_FRAME {
                 break;
@@ -70,15 +120,15 @@ fn main() {
         }
 
         update_screen(&mut main_buffer, &mut ctx);
-        update_debug_buffer(&mut debug_buffer, &mut ctx);
+        // update_debug_buffer(&mut debug_buffer, &mut ctx);
 
         window
             .update_with_buffer(&main_buffer, SCREEN_WIDTH, SCREEN_HEIGHT)
             .unwrap();
 
-        debug_window
-            .update_with_buffer(&debug_buffer, DEBUG_WINDOW_WIDTH, DEBUG_WINDOW_HEIGHT)
-            .unwrap();
+        // debug_window
+        //     .update_with_buffer(&debug_buffer, DEBUG_WINDOW_WIDTH, DEBUG_WINDOW_HEIGHT)
+        //     .unwrap();
     }
 }
 
