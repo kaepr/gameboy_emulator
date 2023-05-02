@@ -5,14 +5,24 @@ Work in progress
 ## Run Instructions
 
 ```bash
+# Running ROM
 cargo run -- -p "relative path to rom" 
+
+# List different cli options
+cargo run -- --help 
 ```
 
-## Default Controls
-- W A S D | Up Left Down Right
-- J K | A B
-- U | Select 
-- I | Start
+## Controls
+| Keyboard   |    Input     |
+| :--------: | :----------: |
+|    W       |   Dpad Up    | 
+|    S       |  Dpad Down   |
+|    A       |  Dpad Right  |
+|    D       |  Dpad Left   |
+|    J       |      A       |
+|    K       |      B       |
+|    U       |   Select     |
+|    I       |   Start      |
 
 ## Dependencies
 - [rust_minifb](https://github.com/emoon/rust_minifb) Framebuffer for displaying the lcd output and keyboard input
