@@ -1,6 +1,6 @@
-# Gameboy Emulator in Rust
+# Gameboy Emulator
 
-Work in progress
+Gameboy emulator, built using Rust for learning purposes.
 
 ## Run Instructions
 
@@ -24,6 +24,12 @@ cargo run -- --help
 |    U       |   Select     |
 |    I       |   Start      |
 
+## Images
+
+![Dr Mario](./images/dr-mario.png)
+
+![Tetris](./images/tetris.png)
+
 ## Dependencies
 - [rust_minifb](https://github.com/emoon/rust_minifb) Framebuffer for displaying the lcd output and keyboard input
 
@@ -33,7 +39,7 @@ Blarrg's test roms can be found at [gb-test-roms](https://github.com/retrio/gb-t
 ## Tasks
 
 - [x] Pass all individual CPU instruction tests
+- [ ] Add more mappers
 - [ ] Run using WASM
 - [ ] Display on browser
-- [ ] Pass display tests
 
